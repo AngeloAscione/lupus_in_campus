@@ -1,0 +1,5 @@
+package Model.Enum;
+
+public class Ruolo {
+    //PER IL MOMENTO L'HO MESSO IN "Enum", POI SE VOGLIAMO GESTIRLO IN MANIERA DIVERSA CAMBIAMO
+}
