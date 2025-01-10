@@ -24,6 +24,9 @@ public class GiocatoreController {
             @RequestParam String nickname, @RequestParam String email, @RequestParam String password) {
 
         Giocatore giocatore = new Giocatore();
+        giocatore.setNickname(nickname);
+        giocatore.setEmail(email);
+        giocatore.setPassword(password);
 
         return giocatoreRepository.save(giocatore);
     }
