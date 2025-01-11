@@ -9,4 +9,6 @@ public interface GiocatoreDAO extends JpaRepository<Giocatore, Long> {
     Giocatore findGiocatoreByEmail(String email);
 
     Giocatore findGiocatoreByNickname(String nickname);
+
+    Giocatore findGIocatoreById(int id);
 }

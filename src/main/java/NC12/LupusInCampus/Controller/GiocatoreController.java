@@ -4,6 +4,7 @@ import NC12.LupusInCampus.Model.DAO.GiocatoreDAO;
 import NC12.LupusInCampus.Model.Giocatore;
 import NC12.LupusInCampus.Model.Utils.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +43,24 @@ public class GiocatoreController {
         // Altrimenti, salva il giocatore e restituiscilo
         Giocatore nuovoGiocatore = giocatoreDAO.save(giocatore);
         return ResponseEntity.ok(nuovoGiocatore);
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<?> eliminaGiocatore(@RequestParam String id) {
+        
+        if (id.isEmpty() || id.isBlank()){
+            return ResponseEntity.badRequest().body("ID vuoto");
+        }
+
+        int id_giocatore = Integer.parseInt(id);
+        Giocatore giocatore = giocatoreDAO.findGIocatoreById(id_giocatore);
+
+        if (giocatore != null) {
+            giocatoreDAO.delete(giocatore);
+            return ResponseEntity.ok("Giocatore eliminato con successo");
+        } else {
+            return ResponseEntity.badRequest().body("Giocatore non trovato");
+        }
     }
 
     public List<String> validaGiocatore(String nickname, String email, String password){
