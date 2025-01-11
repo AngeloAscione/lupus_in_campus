@@ -3,7 +3,6 @@ package NC12.LupusInCampus.Model;
 import jakarta.persistence.*;
 
 
-
 @Entity
 @Table(name = "giocatore")
 public class Giocatore {
