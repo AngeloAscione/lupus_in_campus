@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GiocatoreDAO extends JpaRepository<Giocatore, Long> {
+    // Non serve implementarle, fa tutto Spring usando i nomi e i tipi delle varibili giusti
+
     Giocatore findGiocatoreByEmail(String email);
 
     Giocatore findGiocatoreByNickname(String nickname);
@@ -13,4 +15,5 @@ public interface GiocatoreDAO extends JpaRepository<Giocatore, Long> {
     Giocatore findGIocatoreById(int id);
 
     boolean existsGiocatoreByEmailAndPassword(String email, String password);
+
 }
