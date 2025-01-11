@@ -4,7 +4,6 @@ import NC12.LupusInCampus.Model.DAO.GiocatoreDAO;
 import NC12.LupusInCampus.Model.Giocatore;
 import NC12.LupusInCampus.Model.Utils.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,11 +24,11 @@ public class GiocatoreController {
         this.giocatoreDAO = giocatoreDAO;
     }
 
-    @PostMapping
-    public ResponseEntity<?> aggiungiGiocatore(
+    @PostMapping("/registrazione")
+    public ResponseEntity<?> registrazioneGiocatore(
             @RequestParam String nickname, @RequestParam String email, @RequestParam String password) {
 
-        List<String> errori = validaGiocatore(nickname, email, password);
+        List<String> errori = validaGiocatoreRegistrazione(nickname, email, password);
 
         if (!errori.isEmpty()) {
             return ResponseEntity.badRequest().body(errori);
@@ -47,7 +46,7 @@ public class GiocatoreController {
 
     @PostMapping("/delete")
     public ResponseEntity<?> eliminaGiocatore(@RequestParam String id) {
-        
+
         if (id.isEmpty() || id.isBlank()){
             return ResponseEntity.badRequest().body("ID vuoto");
         }
@@ -63,9 +62,23 @@ public class GiocatoreController {
         }
     }
 
-    public List<String> validaGiocatore(String nickname, String email, String password){
+    @PostMapping("/login")
+    public ResponseEntity<?> loginGiocatore(@RequestParam String email, @RequestParam String password) {
+
+        List<String> errori = validaGiocatoreLogin(email, password);
+
+        if (!errori.isEmpty()) {
+            return ResponseEntity.badRequest().body(errori);
+        }
+
+        // Se non ci sono errori
+        // Invio alla homepage
+        return ResponseEntity.ok("Login eseguito");
+    }
+
+    public List<String> validaGiocatoreRegistrazione(String nickname, String email, String password){
         List<String> errori = new ArrayList<>();
-        
+
         if (email.isBlank() || email.isEmpty()){
             errori.add("Il campo email non può essere vuoto");
         } else if (!Validator.isEmailValid(email)) {
@@ -82,6 +95,30 @@ public class GiocatoreController {
             errori.add("Il campo nickname non può essere vuoto");
         } else if (giocatoreDAO.findGiocatoreByNickname(nickname) != null) {
             errori.add("Nickname già in uso");
+        }
+
+        return errori;
+    }
+
+    public List<String> validaGiocatoreLogin(String email, String password){
+        List<String> errori = new ArrayList<>();
+
+        if (email.isBlank() || email.isEmpty()){
+            errori.add("Il campo email non può essere vuoto");
+        } else if (!Validator.isEmailValid(email)) {
+            errori.add("Email non corrisponde al formato");
+        } else if (giocatoreDAO.findGiocatoreByEmail(email) == null) {
+            errori.add("Email non registrata");
+        }
+
+        if (password.isBlank() || password.isEmpty()){
+            errori.add("Il campo password non può essere vuoto");
+        }
+
+        if (errori.isEmpty()){
+            if (!giocatoreDAO.existsGiocatoreByEmailAndPassword(email, password)){
+                errori.add("Le credenziali non combaciano, riprova!");
+            }
         }
 
         return errori;

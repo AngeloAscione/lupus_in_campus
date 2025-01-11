@@ -11,4 +11,6 @@ public interface GiocatoreDAO extends JpaRepository<Giocatore, Long> {
     Giocatore findGiocatoreByNickname(String nickname);
 
     Giocatore findGIocatoreById(int id);
+
+    boolean existsGiocatoreByEmailAndPassword(String email, String password);
 }
