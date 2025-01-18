@@ -18,4 +18,10 @@ public class LupusInCampusApplication {
 	public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return String.format("Hello %s!", name);
 	}
+
+	@GetMapping("/info")
+	public String info() {
+		return String.format("Version: 1.0");
+	}
+
 }
