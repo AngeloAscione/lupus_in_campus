@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "giocatore")
-public class Giocatore {
+public class Player {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -19,7 +19,7 @@ public class Giocatore {
     @Column(name = "pass", nullable = false)
     private String password;
 
-    public Giocatore(){}
+    public Player(){}
 
     public int getId() {
         return id;
@@ -55,7 +55,7 @@ public class Giocatore {
 
     @Override
     public String toString() {
-        return "Giocatore{" +
+        return "Player{" +
                 "id=" + id +
                 ", nickname='" + nickname + '\'' +
                 ", email='" + email + '\'' +
