@@ -81,6 +81,7 @@ public class PlayerController {
 
         //  If there aren't errors
         Player player = playerDAO.findPlayerByEmail(email);
+        player.setFriendsList(playerDAO.findFriendsByPlayerId(player.getId()));
         session.setAttribute("player", player);
 
         // sending data player

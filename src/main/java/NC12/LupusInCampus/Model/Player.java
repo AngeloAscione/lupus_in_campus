@@ -2,11 +2,15 @@ package NC12.LupusInCampus.Model;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Table(name = "giocatore")
 public class Player {
     @Id
+    @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
@@ -19,7 +23,13 @@ public class Player {
     @Column(name = "pass", nullable = false)
     private String password;
 
-    public Player(){}
+    @ManyToMany
+    private List<Player> friendsList;
+
+
+    public Player(){
+        this.friendsList = new ArrayList<>();
+    }
 
     public int getId() {
         return id;
@@ -51,6 +61,14 @@ public class Player {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public List<Player> getFriendsList() {
+        return friendsList;
+    }
+
+    public void setFriendsList(List<Player> friendsList) {
+        this.friendsList = friendsList;
     }
 
     @Override
