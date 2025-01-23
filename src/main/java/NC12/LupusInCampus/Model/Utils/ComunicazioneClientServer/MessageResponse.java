@@ -3,7 +3,6 @@ package NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer;
 public class MessageResponse {
     private int status; // status HTTP
     private String statusStr; // status HTTP String
-    private String message; // string by SuccessMessages
     private Object body; // message or data json
 
     // Builders
@@ -13,11 +12,9 @@ public class MessageResponse {
         this.body = body;
     }
 
-    public MessageResponse(int status, String statusStr,  Object body, String message) {
+    public MessageResponse(int status, String statusStr) {
         this.status = status;
         this.statusStr = statusStr;
-        this.message = message;
-        this.body = body;
     }
 
     // Getter e setter
@@ -35,14 +32,6 @@ public class MessageResponse {
 
     public void setStatusStr(String statusStr) {
         this.statusStr = statusStr;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public Object getBody() {

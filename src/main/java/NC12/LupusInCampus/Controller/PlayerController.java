@@ -56,10 +56,9 @@ public class PlayerController {
 
         // sending data player
         MessageResponse response = new MessageResponse(
-                HttpStatus.OK.value(),
-                HttpStatus.OK.getReasonPhrase(),
-                newPlayer,
-                SuccessMessages.REGISTRATION_SUCCESS.getMessage()
+                SuccessMessages.REGISTRATION_SUCCESS.getCode(),
+                SuccessMessages.REGISTRATION_SUCCESS.getMessage(),
+                newPlayer
         );
         return ResponseEntity.ok().body(response);
     }
@@ -85,10 +84,9 @@ public class PlayerController {
 
         // sending data player
         MessageResponse response = new MessageResponse(
-                HttpStatus.OK.value(),
-                HttpStatus.OK.getReasonPhrase(),
-                player,
-                SuccessMessages.LOGIN_SUCCESS.getMessage()
+                SuccessMessages.LOGIN_SUCCESS.getCode(),
+                SuccessMessages.LOGIN_SUCCESS.getMessage(),
+                player
         );
         return ResponseEntity.ok().body(response);
 
@@ -100,8 +98,7 @@ public class PlayerController {
         if (id.isEmpty() || id.isBlank()){
 
             MessageResponse response = new MessageResponse(
-                    HttpStatus.UNAUTHORIZED.value(),
-                    HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                    ErrorMessages.EMPTY_ID.getCode(),
                     ErrorMessages.EMPTY_ID.getMessage()
             );
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
@@ -114,16 +111,14 @@ public class PlayerController {
             playerDAO.delete(player);
 
             MessageResponse response = new MessageResponse(
-                    HttpStatus.OK.value(),
-                    HttpStatus.OK.getReasonPhrase(),
+                    SuccessMessages.PLAYER_DELETED.getCode(),
                     SuccessMessages.PLAYER_DELETED.getMessage()
             );
             return ResponseEntity.ok().body(response);
 
         } else {
             MessageResponse response = new MessageResponse(
-                    HttpStatus.UNAUTHORIZED.value(),
-                    HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                    ErrorMessages.PLAYER_NOT_FOUND.getCode(),
                     ErrorMessages.PLAYER_NOT_FOUND.getMessage()
             );
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);

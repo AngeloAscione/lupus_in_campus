@@ -14,7 +14,13 @@ public enum ErrorMessages {
 
     INCORRECT_CREDENTIALS(-1, "Le credenziali non combaciano, riprova!"),
     EMPTY_ID(-1, "ID vuoto"),
-    PLAYER_NOT_FOUND(-1, "Giocatore non trovato");
+    PLAYER_NOT_FOUND(-1, "Giocatore non trovato"),
+
+    PLAYER_NOT_IN_SESSION(-1, "Giocatore nella sessione non trovato"),
+
+    FRIEND_ALREADY_ADDED(-1, "Giocatore già presente nella lista amici"),
+
+    FRIEND_NOT_DELETED(-1, "Eliminazione amico non riuscita");
 
     private final String message;
     private final int code;

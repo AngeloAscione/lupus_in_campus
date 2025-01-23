@@ -23,7 +23,7 @@ public class Player {
     @Column(name = "pass", nullable = false)
     private String password;
 
-    @ManyToMany
+    @Transient
     private List<Player> friendsList;
 
 

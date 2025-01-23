@@ -22,4 +22,9 @@ public interface FriendDAO extends JpaRepository<Player, Integer> {
     @Transactional
     @Query (value = "DELETE FROM listaamici WHERE giocatoreProprietario = :ownerID AND giocatoreAmico = :friendID", nativeQuery = true)
     void removeFriendById(@Param("ownerID") int ownerID, @Param("friendID") int friendID);
+
+    @Modifying
+    @Transactional
+    @Query (value = "INSERT INTO listaamici VALUES (:ownerID, :friendID);", nativeQuery = true)
+    void addFriend(@Param("ownerID") int ownerID, @Param("friendID") int friendID);
 }
