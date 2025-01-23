@@ -6,14 +6,12 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PlayerDAO extends JpaRepository<Player, Long> {
-    // Non serve implementarle, fa tutto Spring usando i nomi e i tipi delle varibili giusti
+    //No implementation needed, Spring does it all using the right method names and variable types
 
     Player findPlayerByEmail(String email);
 
     Player findPlayerByNickname(String nickname);
 
     Player findPlayerById(int id);
-
-    boolean existsPlayerByEmailAndPassword(String email, String password);
 
 }

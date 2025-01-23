@@ -21,7 +21,7 @@ public class LupusInCampusApplication {
 
 	@GetMapping("/info")
 	public String info() {
-		return String.format("Version: 1.0");
+		return "Version: 1.0";
 	}
 
 }

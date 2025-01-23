@@ -1,17 +1,22 @@
 package NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class MessageResponse {
-    private int status;
-    private String statusStr;
-    private Object body; // Permette di adattarsi a dati generici
+    private int status; // status HTTP
+    private String statusStr; // status HTTP String
+    private String message; // string by SuccessMessages
+    private Object body; // message or data json
 
-    // Costruttore
+    // Builders
     public MessageResponse(int status, String statusStr, Object body) {
         this.status = status;
         this.statusStr = statusStr;
+        this.body = body;
+    }
+
+    public MessageResponse(int status, String statusStr,  Object body, String message) {
+        this.status = status;
+        this.statusStr = statusStr;
+        this.message = message;
         this.body = body;
     }
 
@@ -32,25 +37,19 @@ public class MessageResponse {
         this.statusStr = statusStr;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
     public Object getBody() {
         return body;
     }
 
     public void setBody(Object body) {
         this.body = body;
-    }
-
-    // Metodo statico per creare una risposta
-    public static MessageResponse createResponse(int status, String statusStr, Object body) {
-        return new MessageResponse(status, statusStr, body);
-    }
-
-    // Metodo opzionale per una rappresentazione JSON-friendly
-    public Map<String, Object> toMap() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", status);
-        response.put("statusStr", statusStr);
-        response.put("body", body);
-        return response;
     }
 }

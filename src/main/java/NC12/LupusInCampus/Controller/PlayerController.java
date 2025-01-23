@@ -3,10 +3,11 @@ package NC12.LupusInCampus.Controller;
 import NC12.LupusInCampus.Model.DAO.PlayerDAO;
 import NC12.LupusInCampus.Model.Player;
 import NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer.MessageResponse;
-import NC12.LupusInCampus.Model.Utils.ErrorMessages;
-import NC12.LupusInCampus.Model.Utils.SuccessMessages;
+import NC12.LupusInCampus.Model.Enums.ErrorMessages;
+import NC12.LupusInCampus.Model.Enums.SuccessMessages;
 import NC12.LupusInCampus.Model.Utils.Validator;
 import jakarta.servlet.http.HttpSession;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("controller/player")
+@RequestMapping(value="controller/player", produces = "application/json")
 public class PlayerController {
 
     private final PlayerDAO playerDAO;
@@ -47,10 +48,7 @@ public class PlayerController {
         }
 
         // If there aren't errors
-        Player player = new Player();
-        player.setNickname(nickname);
-        player.setEmail(email);
-        player.setPassword(password);
+        Player player = createPlayer(nickname, email, password);
 
         // save
         Player newPlayer = playerDAO.save(player);
@@ -60,7 +58,8 @@ public class PlayerController {
         MessageResponse response = new MessageResponse(
                 HttpStatus.OK.value(),
                 HttpStatus.OK.getReasonPhrase(),
-                newPlayer
+                newPlayer,
+                SuccessMessages.REGISTRATION_SUCCESS.getMessage()
         );
         return ResponseEntity.ok().body(response);
     }
@@ -88,7 +87,8 @@ public class PlayerController {
         MessageResponse response = new MessageResponse(
                 HttpStatus.OK.value(),
                 HttpStatus.OK.getReasonPhrase(),
-                player
+                player,
+                SuccessMessages.LOGIN_SUCCESS.getMessage()
         );
         return ResponseEntity.ok().body(response);
 
@@ -135,7 +135,7 @@ public class PlayerController {
 
         if (email.isBlank() || email.isEmpty())
             errors.add(ErrorMessages.EMPTY_EMAIL_FIELD.getMessage());
-        else if (Validator.isEmailValid(email))
+        else if (!Validator.emailIsValid(email))
             errors.add(ErrorMessages.EMAIL_FORMAT.getMessage());
         else if (playerDAO.findPlayerByEmail(email) != null)
             errors.add(ErrorMessages.EMAIL_ALREADY_USED.getMessage());
@@ -158,7 +158,7 @@ public class PlayerController {
 
         if (email.isBlank() || email.isEmpty())
             errors.add(ErrorMessages.EMPTY_EMAIL_FIELD.getMessage());
-        else if (Validator.isEmailValid(email))
+        else if (!Validator.emailIsValid(email))
             errors.add(ErrorMessages.EMAIL_FORMAT.getMessage());
         else if (playerDAO.findPlayerByEmail(email) == null)
             errors.add(ErrorMessages.EMAIL_NOT_REGISTERED.getMessage());
@@ -168,10 +168,26 @@ public class PlayerController {
             errors.add(ErrorMessages.EMPTY_PASSWORD_FIELD.getMessage());
 
 
-        if (errors.isEmpty())
-            if (!playerDAO.existsPlayerByEmailAndPassword(email, password))
+        if (errors.isEmpty()){
+            Player player = playerDAO.findPlayerByEmail(email);
+            String passHashedDb = player.getPassword();
+
+            if (!BCrypt.checkpw(password, passHashedDb)){
                 errors.add(ErrorMessages.INCORRECT_CREDENTIALS.getMessage());
+            }
+        }
 
         return errors;
+    }
+
+    public Player createPlayer(String nickname, String email, String password){
+        Player player = new Player();
+        player.setNickname(nickname);
+        player.setEmail(email);
+
+        String hashPass = BCrypt.hashpw(password, BCrypt.gensalt());
+        player.setPassword(hashPass);
+
+        return player;
     }
 }
