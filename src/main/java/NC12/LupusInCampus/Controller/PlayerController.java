@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping(value="controller/player", produces = "application/json")
+@RequestMapping(value="controller/player")
 public class PlayerController {
 
     private final PlayerDAO playerDAO;
@@ -81,7 +81,6 @@ public class PlayerController {
 
         //  If there aren't errors
         Player player = playerDAO.findPlayerByEmail(email);
-        player.setFriendsList(playerDAO.findFriendsByPlayerId(player.getId()));
         session.setAttribute("player", player);
 
         // sending data player

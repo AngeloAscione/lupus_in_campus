@@ -1,10 +1,8 @@
 package NC12.LupusInCampus.Controller;
 
-import NC12.LupusInCampus.Model.DAO.PlayerDAO;
 import NC12.LupusInCampus.Model.Player;
 import NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer.MessageResponse;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,17 +13,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("controller/home")
-public class HomeController {
+public class PlayerAreaController {
 
-    public HomeController() {}
+    public PlayerAreaController() {}
 
     @GetMapping("")
     public ResponseEntity<?> home(HttpSession session){
 
         Player player = (Player) session.getAttribute("player");
 
-        if (player == null)
-        {
+        if (player == null) {
             MessageResponse response = new MessageResponse(
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
@@ -37,4 +34,5 @@ public class HomeController {
         List<Player> friends = player.getFriendsList();
         return ResponseEntity.ok().body(friends);
     }
+
 }
