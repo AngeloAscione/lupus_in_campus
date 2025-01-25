@@ -20,7 +20,12 @@ public enum ErrorMessages {
 
     FRIEND_ALREADY_ADDED(-1, "Giocatore già presente nella lista amici"),
 
-    FRIEND_NOT_DELETED(-1, "Eliminazione amico non riuscita");
+    FRIEND_NOT_DELETED(-1, "Eliminazione amico non riuscita"),
+
+    PUBLIC_LOBBIES_NOT_FOUND(-1, "Lobby pubbliche attive non presenti"),
+    LOBBY_NOT_FOUND(-1, "Lobby non trovata"),
+    LIMIT_PLAYER_LOBBY(-1, "Lobby piena"),
+    PLAYER_ALREADY_JOIN(-1, "Giocatore già presente nella lobby");
 
     private final String message;
     private final int code;

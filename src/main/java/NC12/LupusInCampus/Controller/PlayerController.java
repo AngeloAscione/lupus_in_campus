@@ -11,10 +11,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +32,11 @@ public class PlayerController {
             @RequestParam String nickname, @RequestParam String email, @RequestParam String password, HttpSession session) {
 
         List<String> errors = validPlayerRegistration(nickname, email, password);
+        MessageResponse response;
 
         if (!errors.isEmpty()) {
             // Sending messages error registration
-            MessageResponse response = new MessageResponse(
+            response = new MessageResponse(
                     HttpStatus.UNAUTHORIZED.value(),
                     HttpStatus.UNAUTHORIZED.getReasonPhrase(),
                     errors
@@ -55,7 +53,7 @@ public class PlayerController {
         session.setAttribute("player", newPlayer);
 
         // sending data player
-        MessageResponse response = new MessageResponse(
+        response = new MessageResponse(
                 SuccessMessages.REGISTRATION_SUCCESS.getCode(),
                 SuccessMessages.REGISTRATION_SUCCESS.getMessage(),
                 newPlayer
@@ -67,10 +65,11 @@ public class PlayerController {
     public ResponseEntity<?> playerLogin(@RequestParam String email, @RequestParam String password, HttpSession session) {
 
         List<String> errors = validPlayerLogin(email, password);
+        MessageResponse response;
 
         if (!errors.isEmpty()) {
             // Sending messages error registration
-            MessageResponse response = new MessageResponse(
+            response = new MessageResponse(
                     HttpStatus.UNAUTHORIZED.value(),
                     HttpStatus.UNAUTHORIZED.getReasonPhrase(),
                     errors
@@ -83,7 +82,7 @@ public class PlayerController {
         session.setAttribute("player", player);
 
         // sending data player
-        MessageResponse response = new MessageResponse(
+        response = new MessageResponse(
                 SuccessMessages.LOGIN_SUCCESS.getCode(),
                 SuccessMessages.LOGIN_SUCCESS.getMessage(),
                 player
@@ -92,12 +91,37 @@ public class PlayerController {
 
     }
 
+    @GetMapping("/logout")
+    public ResponseEntity<?> playerLogout(HttpSession session) {
+        Player player = (Player) session.getAttribute("player");
+        MessageResponse response;
+
+        if (player != null) {
+            session.invalidate();
+
+            response = new MessageResponse(
+                    SuccessMessages.LOGOUT_SUCCESS.getCode(),
+                    SuccessMessages.LOGOUT_SUCCESS.getMessage()
+            );
+            return ResponseEntity.ok().body(response);
+        }
+
+        response = new MessageResponse(
+                ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
+                ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
     @PostMapping("/delete")
     public ResponseEntity<?> deletePlayer(@RequestParam String id) {
 
+        MessageResponse response;
+
         if (id.isEmpty() || id.isBlank()){
 
-            MessageResponse response = new MessageResponse(
+            response = new MessageResponse(
                     ErrorMessages.EMPTY_ID.getCode(),
                     ErrorMessages.EMPTY_ID.getMessage()
             );
@@ -110,19 +134,20 @@ public class PlayerController {
         if (player != null) {
             playerDAO.delete(player);
 
-            MessageResponse response = new MessageResponse(
+            response = new MessageResponse(
                     SuccessMessages.PLAYER_DELETED.getCode(),
                     SuccessMessages.PLAYER_DELETED.getMessage()
             );
             return ResponseEntity.ok().body(response);
 
-        } else {
-            MessageResponse response = new MessageResponse(
-                    ErrorMessages.PLAYER_NOT_FOUND.getCode(),
-                    ErrorMessages.PLAYER_NOT_FOUND.getMessage()
-            );
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
+
+        response = new MessageResponse(
+                ErrorMessages.PLAYER_NOT_FOUND.getCode(),
+                ErrorMessages.PLAYER_NOT_FOUND.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+
     }
 
     public List<String> validPlayerRegistration(String nickname, String email, String password){

@@ -32,112 +32,106 @@ public class FriendController {
 
     @GetMapping("")
     public ResponseEntity<?> getFriends(HttpSession session) {
-        Player player = (Player) session.getAttribute("player");
 
-        if (player != null) {
-            player.setFriendsList(friendDAO.findFriendsByPlayerId(player.getId()));
-            session.setAttribute("player", player);
-
-            MessageResponse response = new MessageResponse(
-                    SuccessMessages.FRIEND_LOADED.getCode(),
-                    SuccessMessages.FRIEND_LOADED.getMessage(),
-                    player.getFriendsList()
-            );
-            return ResponseEntity.ok().body(response);
-
-        }else {
-            MessageResponse response = new MessageResponse(
+        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-            );
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
+            )
+        );
+
+        Player player = (Player) session.getAttribute("player");
+        player.setFriendsList(friendDAO.findFriendsByPlayerId(player.getId()));
+        session.setAttribute("player", player);
+
+        MessageResponse response = new MessageResponse(
+            SuccessMessages.FRIEND_LOADED.getCode(),
+            SuccessMessages.FRIEND_LOADED.getMessage(),
+            player.getFriendsList()
+        );
+        return ResponseEntity.ok().body(response);
+
+
     }
 
     @GetMapping("/remove-friend")
     public ResponseEntity<?> removeFriend(@RequestParam String id, HttpSession session) {
 
-        Player player = (Player) session.getAttribute("player");
-        MessageResponse response;
-        if (player != null) {
-            player.setFriendsList(friendDAO.findFriendsByPlayerId(player.getId()));
-
-            List<Player> friends = player.getFriendsList();
-
-            System.out.println(friends);
-
-            int idToRemove = Integer.parseInt(id);
-            Player friendToRemove = playerDAO.findPlayerById(idToRemove);
-
-            if (friends.contains(friendToRemove)) {
-                friendDAO.removeFriendById(player.getId(), friendToRemove.getId());
-
-                response = new MessageResponse(
-                        SuccessMessages.FRIEND_DELETED.getCode(),
-                        SuccessMessages.FRIEND_DELETED.getMessage()
-                );
-                return ResponseEntity.ok().body(response);
-
-            }else {
-                response = new MessageResponse(
-                        ErrorMessages.FRIEND_NOT_DELETED.getCode(),
-                        ErrorMessages.FRIEND_NOT_DELETED.getMessage()
-                );
-            }
-        }else {
-            response = new MessageResponse(
+        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-            );
-        }
+            )
+        );
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        Player player = (Player) session.getAttribute("player");
+        player.setFriendsList(friendDAO.findFriendsByPlayerId(player.getId()));
+        List<Player> friends = player.getFriendsList();
+
+        int idToRemove = Integer.parseInt(id);
+        Player friendToRemove = playerDAO.findPlayerById(idToRemove);
+
+        if (!friends.contains(friendToRemove)) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            new MessageResponse(
+                    ErrorMessages.FRIEND_NOT_DELETED.getCode(),
+                    ErrorMessages.FRIEND_NOT_DELETED.getMessage()
+            )
+        );
+
+        friendDAO.removeFriendById(player.getId(), friendToRemove.getId());
+
+        MessageResponse response = new MessageResponse(
+                SuccessMessages.FRIEND_DELETED.getCode(),
+                SuccessMessages.FRIEND_DELETED.getMessage()
+        );
+        return ResponseEntity.ok().body(response);
+
     }
 
     @GetMapping("/add-friend")
     public ResponseEntity<?> addFriend(@RequestParam String id, HttpSession session) {
-        Player player = (Player) session.getAttribute("player");
-        MessageResponse response;
-        if (player != null) {
-            int idToAdd = Integer.parseInt(id);
-            Player friendToAdd = playerDAO.findPlayerById(idToAdd);
 
-            List<Player> friends = friendDAO.findFriendsByPlayerId(player.getId());
-
-            if (friendToAdd != null) {
-                System.out.println(friends);
-                if (!friends.contains(friendToAdd)) {
-
-                    friendDAO.addFriend(player.getId(), friendToAdd.getId());
-                    player.setFriendsList(friendDAO.findFriendsByPlayerId(player.getId()));
-                    session.setAttribute("player", player);
-
-                    response = new MessageResponse(
-                            SuccessMessages.FRIEND_ADDED.getCode(),
-                            SuccessMessages.FRIEND_ADDED.getMessage()
-                    );
-
-                    return ResponseEntity.ok().body(response);
-
-                }else {
-                    response = new MessageResponse(
-                            ErrorMessages.FRIEND_ALREADY_ADDED.getCode(),
-                            ErrorMessages.FRIEND_ALREADY_ADDED.getMessage()
-                    );
-                }
-
-            }else {
-                response = new MessageResponse(
-                        ErrorMessages.PLAYER_NOT_FOUND.getCode(),
-                        ErrorMessages.PLAYER_NOT_FOUND.getMessage()
-                );
-            }
-        }else {
-            response = new MessageResponse(
+        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-            );
-        }
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            )
+        );
+
+        Player player = (Player) session.getAttribute("player");
+
+        int idToAdd = Integer.parseInt(id);
+        Player friendToAdd = playerDAO.findPlayerById(idToAdd);
+
+        if (friendToAdd == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+             new MessageResponse(
+                    ErrorMessages.PLAYER_NOT_FOUND.getCode(),
+                    ErrorMessages.PLAYER_NOT_FOUND.getMessage()
+            )
+        );
+
+        List<Player> friends = friendDAO.findFriendsByPlayerId(player.getId());
+
+        if (friends.contains(friendToAdd)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            new MessageResponse(
+                    ErrorMessages.FRIEND_ALREADY_ADDED.getCode(),
+                    ErrorMessages.FRIEND_ALREADY_ADDED.getMessage()
+            )
+        );
+
+        friendDAO.addFriend(player.getId(), friendToAdd.getId());
+        player.setFriendsList(friendDAO.findFriendsByPlayerId(player.getId()));
+        session.setAttribute("player", player);
+
+        MessageResponse response = new MessageResponse(
+                SuccessMessages.FRIEND_ADDED.getCode(),
+                SuccessMessages.FRIEND_ADDED.getMessage()
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    public boolean sessionIsActive(HttpSession session) {
+        return session.getAttribute("player") != null;
     }
 }
