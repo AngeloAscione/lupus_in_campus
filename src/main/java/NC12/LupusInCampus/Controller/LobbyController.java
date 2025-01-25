@@ -61,6 +61,7 @@ public class LobbyController {
         return ResponseEntity.ok().body(response);
     }
 
+
     // to create a lobby
     @GetMapping("/create-lobby")
     public ResponseEntity<?> createLobby(@RequestParam String minNumPlayer,
@@ -98,7 +99,6 @@ public class LobbyController {
                 SuccessMessages.LOBBY_CREATED.getMessage(),
                 newLobby
         );
-        System.out.println("Sezione creazione lobby: "+lobbyLists);
         return ResponseEntity.ok().body(response);
 
 
@@ -145,56 +145,91 @@ public class LobbyController {
 
         Player player = (Player) session.getAttribute("player");
         if (lobbyLists.get(code).contains(player)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                new MessageResponse(
-                        ErrorMessages.PLAYER_ALREADY_JOIN.getCode(),
-                        ErrorMessages.PLAYER_ALREADY_JOIN.getMessage()
-                )
+            new MessageResponse(
+                    ErrorMessages.PLAYER_ALREADY_JOIN.getCode(),
+                    ErrorMessages.PLAYER_ALREADY_JOIN.getMessage()
+            )
         );
 
 
         lobbyLists.get(code).add(player);
         lobby.setNumPlayer(lobbyLists.get(code).size());
 
-
-        System.out.println("Sezione join lobby: "+lobbyLists);
-
         response = new MessageResponse(
-                SuccessMessages.PLAYER_ADDED_LOBBY.getCode(),
-                SuccessMessages.PLAYER_ADDED_LOBBY.getMessage(),
-                lobby
+            SuccessMessages.PLAYER_ADDED_LOBBY.getCode(),
+            SuccessMessages.PLAYER_ADDED_LOBBY.getMessage(),
+            lobby
         );
         return ResponseEntity.ok().body(response);
     }
 
+    @GetMapping("/modify-lobby")
+    public ResponseEntity<?> modifyLobby(@RequestParam String codeLobby,
+                                         @RequestParam String minNumPlayer,
+                                         @RequestParam String maxNumPlayer,
+                                         HttpSession session) {
+
+        int code = Integer.parseInt(codeLobby);
+
+        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                new MessageResponse(
+                        ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
+                        ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
+                )
+        );
+
+        if (!lobbyLists.containsKey(code)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                new MessageResponse(
+                        ErrorMessages.LOBBY_NOT_FOUND.getCode(),
+                        ErrorMessages.LOBBY_NOT_FOUND.getMessage()
+                )
+        );
+
+
+        lobbyDAO.updateLobbyByCode(code, Integer.parseInt(minNumPlayer), Integer.parseInt(maxNumPlayer), lobbyLists.get(code).size());
+        Lobby lobby = lobbyDAO.findLobbyByCode(code);
+
+        MessageResponse response = new MessageResponse(
+            SuccessMessages.LOBBY_MODIFIED.getCode(),
+            SuccessMessages.LOBBY_MODIFIED.getMessage(),
+            lobby
+        );
+
+        return ResponseEntity.ok().body(response);
+
+    }
+
     @GetMapping("/leave-lobby")
     public ResponseEntity<?> leaveLobby(@RequestParam String codeLobby, HttpSession session) {
-        MessageResponse response;
         int code = Integer.parseInt(codeLobby);
 
         if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
+                ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
+                ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
             )
         );
 
         Player player = (Player) session.getAttribute("player");
         if (!lobbyLists.get(code).contains(player)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                new MessageResponse(
-                        ErrorMessages.PLAYER_NOT_FOUND.getCode(),
-                        ErrorMessages.PLAYER_NOT_FOUND.getMessage()
-                )
+            new MessageResponse(
+                ErrorMessages.PLAYER_NOT_FOUND.getCode(),
+                ErrorMessages.PLAYER_NOT_FOUND.getMessage()
+            )
         );
 
         lobbyLists.get(code).remove(player);
+        Lobby lobby = lobbyDAO.findLobbyByCode(code);
+        lobby.setNumPlayer(lobbyLists.get(code).size());
 
-        response = new MessageResponse(
+        MessageResponse response = new MessageResponse(
                 SuccessMessages.PLAYER_REMOVED_LOBBY.getCode(),
-                SuccessMessages.PLAYER_REMOVED_LOBBY.getMessage()
+                SuccessMessages.PLAYER_REMOVED_LOBBY.getMessage(),
+                lobby
         );
         return ResponseEntity.ok().body(response);
     }
-/*
+    /* TODO do this too after you understand how to notify
     @GetMapping("/invite-friend-lobby")
     public ResponseEntity<?> inviteFriendLobby(@RequestParam String idFriend, @RequestParam String codeLobby, HttpSession session) {
 

@@ -13,5 +13,5 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("controller/home")
+@RequestMapping("controller/player-area")
 public class PlayerAreaController {}

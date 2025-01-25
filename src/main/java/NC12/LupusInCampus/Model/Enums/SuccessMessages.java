@@ -16,7 +16,10 @@ public enum SuccessMessages {
 
     LOBBIES_LOADED(0, "Lobby pubbliche recuperate"),
     LOBBY_CREATED(0, "Lobby creata con successo"),
-    LOBBY_DELETED(0, "Lobby eliminata con successo");
+    LOBBY_DELETED(0, "Lobby eliminata con successo"),
+    LOBBY_MODIFIED(0, "Lobby modificata con successo"),
+
+    SEARCH(0, "Ricerca effettuata con successo"),;
 
     private final String message;
     private final int code;

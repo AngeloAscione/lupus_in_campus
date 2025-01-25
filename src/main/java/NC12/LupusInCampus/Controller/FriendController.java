@@ -88,6 +88,12 @@ public class FriendController {
 
     }
 
+    /* TODO function to send a friend request, we need to see how to do notifications
+    @GetMapping("/send-friend-request")
+    public ResponseEntity<?> sendFriendRequest(@RequestParam String idOwner, @RequestParam String idFriend, HttpSession session){}
+    */
+
+    //TODO modify after doing sendFriendRequest function
     @GetMapping("/add-friend")
     public ResponseEntity<?> addFriend(@RequestParam String id, HttpSession session) {
 
@@ -129,6 +135,27 @@ public class FriendController {
         );
 
         return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> search(@RequestParam String query, HttpSession session) {
+        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            new MessageResponse(
+                    ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
+                    ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
+            )
+        );
+
+        List<Player> players = playerDAO.findPlayersByNicknameContainingIgnoreCase(query);
+
+        return ResponseEntity.ok().body(
+            new MessageResponse(
+                    SuccessMessages.SEARCH.getCode(),
+                    SuccessMessages.SEARCH.getMessage(),
+                    players
+            )
+        );
+
     }
 
     public boolean sessionIsActive(HttpSession session) {
