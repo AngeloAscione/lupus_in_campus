@@ -27,4 +27,9 @@ public interface FriendDAO extends JpaRepository<Player, Integer> {
     @Transactional
     @Query (value = "INSERT INTO listaamici VALUES (:ownerID, :friendID);", nativeQuery = true)
     void addFriend(@Param("ownerID") int ownerID, @Param("friendID") int friendID);
+
+    @Query(value = "SELECT g.* FROM giocatore g " +
+            "JOIN richiestaamicizia r ON r.giocatoreMittente = g.ID " +
+            "WHERE r.giocatoreDestinatario = :idPlayer",nativeQuery = true)
+    List<Player> findPendingFriendRequests(@Param("idPlayer") int idPlayer);
 }

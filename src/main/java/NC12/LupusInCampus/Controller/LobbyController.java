@@ -6,6 +6,7 @@ import NC12.LupusInCampus.Model.Enums.SuccessMessages;
 import NC12.LupusInCampus.Model.Lobby;
 import NC12.LupusInCampus.Model.Player;
 import NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer.MessageResponse;
+import NC12.LupusInCampus.Model.Utils.Session;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ public class LobbyController {
     @GetMapping("/active-public-lobbies")
     public ResponseEntity<?> getActivePublicLobbies(HttpSession session) {
 
-        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
@@ -69,7 +70,7 @@ public class LobbyController {
                                          @RequestParam String tipo /*'Pubblica' o 'Privata'*/,
                                          HttpSession session) {
 
-        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
@@ -121,7 +122,7 @@ public class LobbyController {
         MessageResponse response;
         int code = Integer.parseInt(codeLobby);
 
-        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                 ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                 ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
@@ -171,7 +172,7 @@ public class LobbyController {
 
         int code = Integer.parseInt(codeLobby);
 
-        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 new MessageResponse(
                         ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                         ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
@@ -199,11 +200,12 @@ public class LobbyController {
 
     }
 
+    // for the player who wants to leave a lobby
     @GetMapping("/leave-lobby")
     public ResponseEntity<?> leaveLobby(@RequestParam String codeLobby, HttpSession session) {
         int code = Integer.parseInt(codeLobby);
 
-        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                 ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                 ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
@@ -229,17 +231,13 @@ public class LobbyController {
         );
         return ResponseEntity.ok().body(response);
     }
-    /* TODO do this too after you understand how to notify
+    /* TODO do this too after understand how to notify
     @GetMapping("/invite-friend-lobby")
     public ResponseEntity<?> inviteFriendLobby(@RequestParam String idFriend, @RequestParam String codeLobby, HttpSession session) {
 
     }
 
     */
-
-    public boolean sessionIsActive(HttpSession session) {
-        return session.getAttribute("player") != null;
-    }
 
     public int createLobbyCode(){
         Random random = new Random();

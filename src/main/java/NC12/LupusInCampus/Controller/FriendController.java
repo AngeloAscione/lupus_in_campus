@@ -6,6 +6,7 @@ import NC12.LupusInCampus.Model.Enums.ErrorMessages;
 import NC12.LupusInCampus.Model.Enums.SuccessMessages;
 import NC12.LupusInCampus.Model.Player;
 import NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer.MessageResponse;
+import NC12.LupusInCampus.Model.Utils.Session;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class FriendController {
     @GetMapping("")
     public ResponseEntity<?> getFriends(HttpSession session) {
 
-        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
@@ -57,7 +59,7 @@ public class FriendController {
     @GetMapping("/remove-friend")
     public ResponseEntity<?> removeFriend(@RequestParam String id, HttpSession session) {
 
-        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
@@ -97,7 +99,7 @@ public class FriendController {
     @GetMapping("/add-friend")
     public ResponseEntity<?> addFriend(@RequestParam String id, HttpSession session) {
 
-        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
@@ -139,7 +141,7 @@ public class FriendController {
 
     @GetMapping("/search")
     public ResponseEntity<?> search(@RequestParam String query, HttpSession session) {
-        if (!sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
@@ -158,7 +160,4 @@ public class FriendController {
 
     }
 
-    public boolean sessionIsActive(HttpSession session) {
-        return session.getAttribute("player") != null;
-    }
 }

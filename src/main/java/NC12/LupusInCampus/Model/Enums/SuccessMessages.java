@@ -19,7 +19,8 @@ public enum SuccessMessages {
     LOBBY_DELETED(0, "Lobby eliminata con successo"),
     LOBBY_MODIFIED(0, "Lobby modificata con successo"),
 
-    SEARCH(0, "Ricerca effettuata con successo"),;
+    SEARCH(0, "Ricerca effettuata con successo"),
+    LOAD_ALL_INFO(0, "Dati area utente caricati correttamente");
 
     private final String message;
     private final int code;

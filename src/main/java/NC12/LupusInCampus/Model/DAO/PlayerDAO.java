@@ -12,11 +12,11 @@ import java.util.List;
 public interface PlayerDAO extends JpaRepository<Player, Integer> {
     //No implementation needed, Spring does it all using the right method names and variable types
 
-    Player findPlayerByEmail(String email);
+    Player findPlayerByEmail(@RequestParam String email);
 
-    Player findPlayerByNickname(String nickname);
+    Player findPlayerByNickname(@RequestParam String nickname);
 
-    Player findPlayerById(int id);
+    Player findPlayerById(@RequestParam int id);
 
     List<Player> findPlayersByNicknameContainingIgnoreCase(@RequestParam String query);
 }

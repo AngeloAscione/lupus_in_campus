@@ -26,6 +26,9 @@ public class Player {
     @Transient
     private List<Player> friendsList;
 
+    @Transient
+    private String role;
+
 
     public Player(){
         this.friendsList = new ArrayList<>();
@@ -71,6 +74,14 @@ public class Player {
         this.friendsList = friendsList;
     }
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     @Override
     public String toString() {
         return "Player{" +
@@ -78,6 +89,8 @@ public class Player {
                 ", nickname='" + nickname + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
+                ", friendsList=" + friendsList +
+                ", role='" + role + '\'' +
                 '}';
     }
 }
