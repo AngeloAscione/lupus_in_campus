@@ -24,6 +24,7 @@ public interface PlayerDAO extends JpaRepository<Player, Integer> {
 
     List<Player> findPlayersByNicknameContainingIgnoreCase(@RequestParam String query);
 
+    Player findPlayerByEmailAndPassword(@RequestParam String email, @RequestParam String password);
 
     @Modifying
     @Transactional
