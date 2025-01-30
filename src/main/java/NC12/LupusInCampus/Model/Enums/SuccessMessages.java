@@ -20,7 +20,8 @@ public enum SuccessMessages {
     LOBBY_MODIFIED(0, "Lobby modificata con successo"),
 
     SEARCH(0, "Ricerca effettuata con successo"),
-    LOAD_ALL_INFO(0, "Dati area utente caricati correttamente");
+    LOAD_ALL_INFO(0, "Dati area utente caricati correttamente"),
+    SUCCESS_EDIT(0, "Modifiche dei dati effettuate");
 
     private final String message;
     private final int code;
