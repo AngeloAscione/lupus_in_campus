@@ -32,4 +32,6 @@ public interface FriendDAO extends JpaRepository<Player, Integer> {
             "JOIN richiestaamicizia r ON r.giocatoreMittente = g.ID " +
             "WHERE r.giocatoreDestinatario = :idPlayer",nativeQuery = true)
     List<Player> findPendingFriendRequests(@Param("idPlayer") int idPlayer);
+
+
 }
