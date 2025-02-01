@@ -74,6 +74,14 @@
 			<version>2.11.0</version>
 		</dependency>
 
+		<!-- Lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.30</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<!-- GSON -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -86,6 +94,12 @@
 			<groupId>org.mindrot</groupId>
 			<artifactId>jbcrypt</artifactId>
 			<version>0.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>javax.mail</artifactId>
+			<version>1.5.5</version>
 		</dependency>
 
 	</dependencies>
