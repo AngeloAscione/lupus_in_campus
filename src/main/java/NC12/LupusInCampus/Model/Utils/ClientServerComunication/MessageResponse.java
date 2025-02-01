@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer;
+package NC12.LupusInCampus.Model.Utils.ClientServerComunication;
 
 public class MessageResponse {
     private int status; // status HTTP

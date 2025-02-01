@@ -7,22 +7,17 @@ import NC12.LupusInCampus.Model.Enums.ErrorMessages;
 import NC12.LupusInCampus.Model.Enums.SuccessMessages;
 import NC12.LupusInCampus.Model.FriendRequest;
 import NC12.LupusInCampus.Model.Player;
-import NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer.MessageResponse;
+import NC12.LupusInCampus.Model.Utils.ClientServerComunication.MessageResponse;
+import NC12.LupusInCampus.Model.Utils.ClientServerComunication.WebClientNotification;
 import NC12.LupusInCampus.Model.Utils.Session;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.BodyInserter;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 
 import java.time.LocalDateTime;
@@ -36,11 +31,9 @@ public class FriendController {
     private final FriendDAO friendDAO;
     private final FriendRequestDAO friendRequestDAO;
 
-    private final WebClient webClient;
 
     @Autowired
-    public FriendController( WebClient.Builder webClientBuilder, PlayerDAO playerDAO, FriendDAO friendDAO, FriendRequestDAO friendRequestDAO) {
-        this.webClient = webClientBuilder.baseUrl("http://localhost:8080/").build();
+    public FriendController(PlayerDAO playerDAO, FriendDAO friendDAO, FriendRequestDAO friendRequestDAO) {
         this.playerDAO = playerDAO;
         this.friendDAO = friendDAO;
         this.friendRequestDAO = friendRequestDAO;
@@ -109,36 +102,18 @@ public class FriendController {
     public ResponseEntity<?> sendFriendRequest(@RequestParam String idFriend, HttpSession session) {
         if (!Session.sessionIsActive(session)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    new MessageResponse(
-                            ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                            ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-                    )
+                new MessageResponse(
+                        ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
+                        ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
+                )
             );
         }
 
         Player player = (Player) session.getAttribute("player");
 
-        FriendRequest friendRequest = new FriendRequest();
-        friendRequest.setSenderId(player.getId());
-        friendRequest.setReceiverId(Integer.parseInt(idFriend));
-        friendRequest.setRequestDate(LocalDateTime.now());
-        friendRequestDAO.save(friendRequest);
+        saveFriendRequest(player, idFriend);
 
-        ResponseEntity<?> response = webClient.post()
-                .uri("controller/notification/send")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData("receivingPlayerID", idFriend)
-                        .with("message", "Richiesta di amicizia"))
-                .retrieve()
-                .toEntity(Object.class)
-                .block();
-
-
-        assert response != null;
-        return  ResponseEntity
-                        .status(response.getStatusCode())
-                        .headers(response.getHeaders())
-                        .body(response.getBody());
+        return WebClientNotification.sendNotificationWebClient(idFriend,"Richiesta di amicizia");
     }
 
 
@@ -210,6 +185,14 @@ public class FriendController {
                     "Richiesta di amicizia rifiutata"
             )
         );
+    }
+
+    public void saveFriendRequest(Player player, String idFriend){
+        FriendRequest friendRequest = new FriendRequest();
+        friendRequest.setSenderId(player.getId());
+        friendRequest.setReceiverId(Integer.parseInt(idFriend));
+        friendRequest.setRequestDate(LocalDateTime.now());
+        friendRequestDAO.save(friendRequest);
     }
 
 }

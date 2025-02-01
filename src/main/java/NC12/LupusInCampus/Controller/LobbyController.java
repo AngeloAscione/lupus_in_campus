@@ -1,11 +1,14 @@
 package NC12.LupusInCampus.Controller;
 
 import NC12.LupusInCampus.Model.DAO.LobbyDAO;
+import NC12.LupusInCampus.Model.DAO.LobbyInvitationDAO;
 import NC12.LupusInCampus.Model.Enums.ErrorMessages;
 import NC12.LupusInCampus.Model.Enums.SuccessMessages;
 import NC12.LupusInCampus.Model.Lobby;
+import NC12.LupusInCampus.Model.LobbyInvitation;
 import NC12.LupusInCampus.Model.Player;
-import NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer.MessageResponse;
+import NC12.LupusInCampus.Model.Utils.ClientServerComunication.MessageResponse;
+import NC12.LupusInCampus.Model.Utils.ClientServerComunication.WebClientNotification;
 import NC12.LupusInCampus.Model.Utils.Session;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +31,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LobbyController {
 
     private final LobbyDAO lobbyDAO;
+    private final LobbyInvitationDAO lobbyInvitationDAO;
     private static final Map<Integer, List<Player>> lobbyLists = new ConcurrentHashMap<>();
 
     @Autowired
-    public LobbyController(LobbyDAO lobbyDAO) {this.lobbyDAO = lobbyDAO;}
+    public LobbyController(LobbyDAO lobbyDAO, LobbyInvitationDAO lobbyInvitationDAO) {this.lobbyDAO = lobbyDAO;
+        this.lobbyInvitationDAO = lobbyInvitationDAO;
+    }
 
     //to receive a list of all active public lobbies
     @GetMapping("/active-public-lobbies")
@@ -231,13 +237,38 @@ public class LobbyController {
         );
         return ResponseEntity.ok().body(response);
     }
-    /* TODO do this too after understand how to notify
+
     @GetMapping("/invite-friend-lobby")
     public ResponseEntity<?> inviteFriendLobby(@RequestParam String idFriend, @RequestParam String codeLobby, HttpSession session) {
+        if(!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                new MessageResponse(
+                        ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
+                        ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
+                )
+        );
 
+        List<Object> out = new ArrayList<>();
+
+        Player player = (Player) session.getAttribute("player");
+
+        LobbyInvitation lobbyInvitation = new LobbyInvitation();
+        lobbyInvitation.setSendingPlayerId(player.getId());
+        lobbyInvitation.setInvitedPlayerId(Integer.parseInt(idFriend));
+        lobbyInvitation.setDataInvitation(LocalDateTime.now());
+        lobbyInvitationDAO.save(lobbyInvitation);
+
+        ResponseEntity<?> responseNotify = WebClientNotification.sendNotificationWebClient(idFriend,
+                "Invito ad entrare in lobby");
+
+        //I don't know if we need to return the lobby, then we'll see
+        Lobby lobby = lobbyDAO.findLobbyByCode(Integer.parseInt(codeLobby));
+
+        out.add(responseNotify);
+        out.add(lobby);
+
+        return ResponseEntity.ok().body(out);
     }
 
-    */
 
     public int createLobbyCode(){
         Random random = new Random();

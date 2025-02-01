@@ -2,7 +2,7 @@ package NC12.LupusInCampus.Controller;
 
 import NC12.LupusInCampus.Model.DAO.PlayerDAO;
 import NC12.LupusInCampus.Model.Player;
-import NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer.MessageResponse;
+import NC12.LupusInCampus.Model.Utils.ClientServerComunication.MessageResponse;
 import NC12.LupusInCampus.Model.Enums.ErrorMessages;
 import NC12.LupusInCampus.Model.Enums.SuccessMessages;
 import NC12.LupusInCampus.Model.Utils.Validator;

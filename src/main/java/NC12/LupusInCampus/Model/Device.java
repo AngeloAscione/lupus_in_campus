@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.Model.Utils;
+package NC12.LupusInCampus.Model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

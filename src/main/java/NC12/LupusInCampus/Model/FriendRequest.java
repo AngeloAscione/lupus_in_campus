@@ -47,4 +47,13 @@ public class FriendRequest {
     public LocalDateTime getRequestDate() {
         return requestDate;
     }
+
+    @Override
+    public String toString() {
+        return "FriendRequest{" +
+                "senderId=" + senderId +
+                ", receiverId=" + receiverId +
+                ", requestDate=" + requestDate +
+                '}';
+    }
 }

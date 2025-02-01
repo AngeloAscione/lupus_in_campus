@@ -1,7 +1,7 @@
 package NC12.LupusInCampus.Controller;
 
 import NC12.LupusInCampus.Model.DAO.DeviceDAO;
-import NC12.LupusInCampus.Model.Utils.Device;
+import NC12.LupusInCampus.Model.Device;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
