@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.utils.comunicazioneClientServer;
+package NC12.LupusInCampus.utils.clientServerComunication;
 
 public class MessageResponse {
     private int status; // status HTTP

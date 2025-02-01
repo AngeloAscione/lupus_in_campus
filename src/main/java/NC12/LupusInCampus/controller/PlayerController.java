@@ -3,13 +3,12 @@ package NC12.LupusInCampus.controller;
 import NC12.LupusInCampus.model.dao.PlayerDAO;
 import NC12.LupusInCampus.model.Player;
 import NC12.LupusInCampus.service.PasswordResetService;
-import NC12.LupusInCampus.utils.comunicazioneClientServer.MessageResponse;
+import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
 import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
 import NC12.LupusInCampus.service.emails.Email;
 import NC12.LupusInCampus.utils.Validator;
 import jakarta.servlet.http.HttpSession;
-import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -247,10 +246,7 @@ public class PlayerController {
 
 
         if (errors.isEmpty()){
-            Player player = playerDAO.findPlayerByEmail(email);
-            String passHashedDb = player.getPassword();
-
-            if (!BCrypt.checkpw(password, passHashedDb)){
+            if (playerDAO.findPlayerByEmailAndPassword(email, password) == null){
                 errors.add(ErrorMessages.INCORRECT_CREDENTIALS.getMessage());
             }
         }
@@ -262,9 +258,7 @@ public class PlayerController {
         Player player = new Player();
         player.setNickname(nickname);
         player.setEmail(email);
-
-        String hashPass = BCrypt.hashpw(password, BCrypt.gensalt());
-        player.setPassword(hashPass);
+        player.setPassword(password);
 
         return player;
     }

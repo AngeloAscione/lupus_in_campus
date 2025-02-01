@@ -18,7 +18,6 @@ public class PasswordResetService {
 
     private final PlayerDAO playerDAO;
     private final PasswordResetTokenDAO passwordResetTokenDAO;
-    private final Email email = Email.getInstance();
 
     private static final long EXPIRATION_TIME = 15;
 
