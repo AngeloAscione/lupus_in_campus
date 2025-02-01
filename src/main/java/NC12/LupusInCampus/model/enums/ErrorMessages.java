@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.Model.Enums;
+package NC12.LupusInCampus.model.enums;
 
 public enum ErrorMessages {
     EMPTY_NICKNAME_FIELD(-1, "Il campo nickname non può essere vuoto"),

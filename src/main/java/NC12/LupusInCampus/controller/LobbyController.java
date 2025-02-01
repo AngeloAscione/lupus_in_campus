@@ -1,12 +1,12 @@
-package NC12.LupusInCampus.Controller;
+package NC12.LupusInCampus.controller;
 
-import NC12.LupusInCampus.Model.DAO.LobbyDAO;
-import NC12.LupusInCampus.Model.Enums.ErrorMessages;
-import NC12.LupusInCampus.Model.Enums.SuccessMessages;
-import NC12.LupusInCampus.Model.Lobby;
-import NC12.LupusInCampus.Model.Player;
-import NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer.MessageResponse;
-import NC12.LupusInCampus.Model.Utils.Session;
+import NC12.LupusInCampus.model.dao.LobbyDAO;
+import NC12.LupusInCampus.model.enums.ErrorMessages;
+import NC12.LupusInCampus.model.enums.SuccessMessages;
+import NC12.LupusInCampus.model.Lobby;
+import NC12.LupusInCampus.model.Player;
+import NC12.LupusInCampus.utils.comunicazioneClientServer.MessageResponse;
+import NC12.LupusInCampus.utils.Session;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

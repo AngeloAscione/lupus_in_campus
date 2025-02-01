@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.Model.Utils;
+package NC12.LupusInCampus.utils;
 
 import java.util.regex.Pattern;
 

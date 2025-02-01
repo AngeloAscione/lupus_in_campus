@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer;
+package NC12.LupusInCampus.utils.comunicazioneClientServer;
 
 import org.springframework.web.ErrorResponse;
 import retrofit2.Call;

@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer;
+package NC12.LupusInCampus.utils.comunicazioneClientServer;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;

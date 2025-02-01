@@ -1,6 +1,6 @@
-package NC12.LupusInCampus.Model.DAO;
+package NC12.LupusInCampus.model.dao;
 
-import NC12.LupusInCampus.Model.Player;
+import NC12.LupusInCampus.model.Player;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

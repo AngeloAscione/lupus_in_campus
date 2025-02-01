@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.Model.Enums;
+package NC12.LupusInCampus.model.enums;
 
 public enum SuccessMessages {
 

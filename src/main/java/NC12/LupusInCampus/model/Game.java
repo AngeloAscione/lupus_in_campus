@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.Model;
+package NC12.LupusInCampus.model;
 
 import jakarta.persistence.*;
 

@@ -1,11 +1,13 @@
-package NC12.LupusInCampus.Controller;
+package NC12.LupusInCampus.controller;
 
-import NC12.LupusInCampus.Model.DAO.PlayerDAO;
-import NC12.LupusInCampus.Model.Player;
-import NC12.LupusInCampus.Model.Utils.ComunicazioneClientServer.MessageResponse;
-import NC12.LupusInCampus.Model.Enums.ErrorMessages;
-import NC12.LupusInCampus.Model.Enums.SuccessMessages;
-import NC12.LupusInCampus.Model.Utils.Validator;
+import NC12.LupusInCampus.model.dao.PlayerDAO;
+import NC12.LupusInCampus.model.Player;
+import NC12.LupusInCampus.service.PasswordResetService;
+import NC12.LupusInCampus.utils.comunicazioneClientServer.MessageResponse;
+import NC12.LupusInCampus.model.enums.ErrorMessages;
+import NC12.LupusInCampus.model.enums.SuccessMessages;
+import NC12.LupusInCampus.service.emails.Email;
+import NC12.LupusInCampus.utils.Validator;
 import jakarta.servlet.http.HttpSession;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +23,12 @@ import java.util.List;
 public class PlayerController {
 
     private final PlayerDAO playerDAO;
+    private final PasswordResetService passwordResetService;
 
     @Autowired
-    public PlayerController(PlayerDAO playerDAO) {
+    public PlayerController(PlayerDAO playerDAO, PasswordResetService passwordResetService) {
         this.playerDAO = playerDAO;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/registration")
@@ -148,6 +152,60 @@ public class PlayerController {
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 
+    }
+
+
+    /**
+     * Post request for requesting password change
+     * @param email URL parameter with player's email
+     * @return Sends and email to the player who has requested password change
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+
+        if (!Validator.emailIsValid(email)) {
+            MessageResponse response = new MessageResponse(ErrorMessages.EMAIL_FORMAT.getCode(), ErrorMessages.EMAIL_FORMAT.getMessage());;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
+        String username = "";
+        try {
+            username = playerDAO.findPlayerByEmail(email).getNickname();
+        } catch (NullPointerException e) {
+            MessageResponse response = new MessageResponse(ErrorMessages.EMAIL_NOT_REGISTERED.getCode(), ErrorMessages.EMAIL_NOT_REGISTERED.getMessage());;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
+        String link = passwordResetService.initiatePasswordReset(email);
+
+        String body = """
+                Ciao %s,
+                abbiamo ricevuto una richiesta di reimpostazione della tua password per l'account associato a questo indirizzo email.
+                
+                Per scegliere una nuova password, fai clic sul link qui sotto:
+                
+                %s
+                
+                Se non hai richiesto il cambio password, ignora semplicemente questa mail,
+                la tua password attuale rimarrà invariata e nessun'altra azione sarà necessaria.
+                
+                Grazie,
+                il team di Lupus In Campus.
+                """.formatted(username, link);
+
+        Email.getInstance().sendEmail(email, "Recupera Password", body);
+
+        return ResponseEntity.ok().body("Email enviata correttamente");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
+        try {
+            passwordResetService.resetPassword(token, newPassword);
+            return ResponseEntity.ok("Password has been reset successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
     }
 
     public List<String> validPlayerRegistration(String nickname, String email, String password){
