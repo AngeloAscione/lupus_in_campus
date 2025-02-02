@@ -50,4 +50,8 @@ public class PasswordResetToken {
     public void setExpiryDate(Instant expiryDate) {
         this.expiryDate = expiryDate;
     }
+
+    public boolean isExpired() {
+        return Instant.now().isAfter(expiryDate);
+    }
 }
