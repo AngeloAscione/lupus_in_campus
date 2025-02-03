@@ -12,12 +12,14 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@RestController
+@Controller
 @RequestMapping(value="controller/player")
 public class PlayerController {
 
@@ -197,10 +199,24 @@ public class PlayerController {
         return ResponseEntity.ok().body("Email enviata correttamente");
     }
 
+
+    @GetMapping("/reset-password")
+    public String resetPassword(@RequestParam String token, Model model) {
+        try{
+            Player p = passwordResetService.validateResetToken(token);
+            model.addAttribute("username", p.getNickname());
+            model.addAttribute("token", token);
+            return "reset-password";
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "error";
+    }
+
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
+    public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String password) {
         try {
-            passwordResetService.resetPassword(token, newPassword);
+            passwordResetService.resetPassword(token, password);
             return ResponseEntity.ok("Password has been reset successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());

@@ -33,18 +33,33 @@ public class PasswordResetService {
         resetToken.setExpiryDate(Instant.now().plus(EXPIRATION_TIME, ChronoUnit.MINUTES));
         passwordResetTokenDAO.save(resetToken);
 
-        return "http://localhost:8080/reset-password?token=" + token;
+        return "http://localhost:8080/controller/player/reset-password?token=" + token;
 
     }
 
-    public void resetPassword(String token, String newPassword) {
-        PasswordResetToken resetToken = passwordResetTokenDAO.findByToken(token).orElseThrow(() -> new RuntimeException("Invalid token"));
+    public Player validateResetToken(String token) {
+        PasswordResetToken resetToken = passwordResetTokenDAO.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid token"));
 
-        if (Instant.now().isAfter(resetToken.getExpiryDate())) {
-            throw new RuntimeException("Invalid token, expired");
+        if (resetToken.isExpired()) {
+            throw new RuntimeException("Token has expired");
+        }
+
+        return resetToken.getPlayer();
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenDAO.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid token"));
+
+        if (resetToken.isExpired()) {
+            throw new RuntimeException("Token has expired");
         }
 
         Player player = resetToken.getPlayer();
+
+
+
         player.setPassword(newPassword);
         playerDAO.save(player);
 
