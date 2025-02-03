@@ -21,7 +21,9 @@ public enum SuccessMessages {
 
     SEARCH(0, "Ricerca effettuata con successo"),
     LOAD_ALL_INFO(0, "Dati area utente caricati correttamente"),
-    SUCCESS_EDIT(0, "Modifiche dei dati effettuate");
+    SUCCESS_EDIT(0, "Modifiche dei dati effettuate"),
+
+    NOTIFICATION_SENT(0, "Notifica inviata");
 
     private final String message;
     private final int code;

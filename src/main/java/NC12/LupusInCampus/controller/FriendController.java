@@ -9,15 +9,12 @@ import NC12.LupusInCampus.model.Player;
 import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
 import NC12.LupusInCampus.utils.Session;
 import NC12.LupusInCampus.model.dao.FriendRequestDAO;
-import NC12.LupusInCampus.utils.clientServerComunication.WebClientNotification;
+import NC12.LupusInCampus.utils.clientServerComunication.NotificationCaller;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 import java.time.LocalDateTime;
@@ -30,13 +27,15 @@ public class FriendController {
     private final PlayerDAO playerDAO;
     private final FriendDAO friendDAO;
     private final FriendRequestDAO friendRequestDAO;
+    private final NotificationCaller notificationCaller;
 
 
     @Autowired
-    public FriendController(PlayerDAO playerDAO, FriendDAO friendDAO, FriendRequestDAO friendRequestDAO) {
+    public FriendController(PlayerDAO playerDAO, FriendDAO friendDAO, FriendRequestDAO friendRequestDAO, NotificationCaller notificationCaller) {
         this.playerDAO = playerDAO;
         this.friendDAO = friendDAO;
         this.friendRequestDAO = friendRequestDAO;
+        this.notificationCaller = notificationCaller;
     }
 
     @GetMapping("")
@@ -98,14 +97,14 @@ public class FriendController {
     }
 
 
-    @GetMapping("/send-friend-request")
+    @PostMapping("/send-friend-request")
     public ResponseEntity<?> sendFriendRequest(@RequestParam String idFriend, HttpSession session) {
         if (!Session.sessionIsActive(session)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                new MessageResponse(
-                        ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                        ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-                )
+                    new MessageResponse(
+                            ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
+                            ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
+                    )
             );
         }
 
@@ -113,7 +112,9 @@ public class FriendController {
 
         saveFriendRequest(player, idFriend);
 
-        return WebClientNotification.sendNotificationWebClient(idFriend,"Richiesta di amicizia");
+        //chiamata a controller/notification/send con parametri in POST
+        return notificationCaller.sendNotificationWebClient(idFriend, "Richiesta di amicizia");
+
     }
 
 

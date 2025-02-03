@@ -3,6 +3,8 @@ package NC12.LupusInCampus.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
+import java.util.Objects;
+
 @Embeddable
 public class LobbyInvitationPk {
 
@@ -26,5 +28,18 @@ public class LobbyInvitationPk {
 
     public void setInvitedPlayerId(int invitedPlayerId) {
         this.invitedPlayerId = invitedPlayerId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LobbyInvitationPk that = (LobbyInvitationPk) o;
+        return sendingPlayerId == that.sendingPlayerId && invitedPlayerId == that.invitedPlayerId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(sendingPlayerId, invitedPlayerId);
     }
 }

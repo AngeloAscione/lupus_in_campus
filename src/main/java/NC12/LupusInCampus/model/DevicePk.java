@@ -2,7 +2,8 @@ package NC12.LupusInCampus.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Id;
+
+import java.util.Objects;
 
 @Embeddable
 public class DevicePk {
@@ -27,5 +28,18 @@ public class DevicePk {
 
     public void setDeviceToken(String deviceToken) {
         this.deviceToken = deviceToken;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DevicePk devicePk = (DevicePk) o;
+        return playerID == devicePk.playerID && Objects.equals(deviceToken, devicePk.deviceToken);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(playerID, deviceToken);
     }
 }

@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface DeviceDAO extends JpaRepository<Device, DevicePk> {
-    List<Device> findDevicesByDevicePk(DevicePk devicePk);
+    List<Device> findDevicesByDevicePkPlayerID(int playerID);
 }

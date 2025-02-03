@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class FriendRequest {
 
     @EmbeddedId
-    private FriendRequestPk friendRequestPk;
+    private FriendRequestPk friendRequestPk = new FriendRequestPk();
 
     @Column(name = "dataRichiesta")
     private LocalDateTime requestDate;
