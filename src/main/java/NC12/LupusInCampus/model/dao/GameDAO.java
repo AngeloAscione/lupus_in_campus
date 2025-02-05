@@ -2,9 +2,12 @@ package NC12.LupusInCampus.model.dao;
 
 import NC12.LupusInCampus.model.Game;
 import NC12.LupusInCampus.model.Player;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,4 +31,9 @@ public interface GameDAO extends JpaRepository<Game, Integer> {
             "WHERE g.ID = :idPlayer " +
             "AND lp.partitaID = :idGame", nativeQuery = true)
     String findRoleByPlayerId(@Param("idPlayer") int idPlayer, @Param("idGame") int idGame);
+
+    @Modifying
+    @Transactional
+    @Query(value = "INSERT INTO listapartecipanti (partitaID, giocatoreID, ruolo) VALUES (:idGame, :idPlayer, :ruolo)", nativeQuery = true)
+    void saveParticipants(@Param("idGame") int idGame, @Param("idPlayer") int idPlayer, @Param("ruolo") String ruolo);
 }
