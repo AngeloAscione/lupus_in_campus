@@ -124,7 +124,7 @@ public class FriendController {
 
         LoggerUtil.logInfo("<- Risposta send friend request: " + player);
         //chiamata a controller/notification/send con parametri in POST
-        return notificationCaller.sendNotificationWebClient(idFriend, "Richiesta di amicizia");
+        return notificationCaller.sendNotificationWebClient(params.get("friendId"), "Richiesta di amicizia");
 
     }
 

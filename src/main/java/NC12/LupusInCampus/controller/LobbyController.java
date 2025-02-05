@@ -24,7 +24,9 @@ import org.thymeleaf.util.LoggingUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 @RestController
@@ -138,7 +140,7 @@ public class LobbyController {
         LoggerUtil.logInfo("-> Ricevuta richiesta delete lobby");
         int code = params.get("code");
         lobbyDAO.deleteById(code);
-        lobbyLists.remove(code);
+        lobbyLists.removeLobbyCode(code);
         LoggerUtil.logInfo("<- Risposta delete lobby");
         return ResponseEntity.ok().body(new MessageResponse(
                 SuccessMessages.LOBBY_DELETED.getCode(),
@@ -217,10 +219,9 @@ public class LobbyController {
         );
 
 
-        lobbyDAO.updateLobbyByCode(code, modifyLobbyRequest.getMinNumPlayer(), modifyLobbyRequest.getMaxNumPlayer(), lobbyLists.get(code).size());
         Lobby lobby = lobbyDAO.findLobbyByCode(code);
-        lobby.setMinNumPlayer(Integer.parseInt(minNumPlayer));
-        lobby.setMaxNumPlayer(Integer.parseInt(maxNumPlayer));
+        lobby.setMinNumPlayer(modifyLobbyRequest.getMinNumPlayer());
+        lobby.setMaxNumPlayer(modifyLobbyRequest.getMaxNumPlayer());
         lobby.setNumPlayer(lobbyLists.getListPlayers(code).size());
         lobbyDAO.save(lobby);
 
@@ -290,10 +291,10 @@ public class LobbyController {
         lobbyInvitation.setDataInvitation(LocalDateTime.now());
         lobbyInvitationDAO.save(lobbyInvitation);
 
-        return notificationCaller.sendNotificationWebClient(idFriend, "Invito ad entrare in lobby");
+        ResponseEntity responseNotify = notificationCaller.sendNotificationWebClient(String.valueOf(inviteFriendToLobbyRequest.getFriendId()), "Invito ad entrare in lobby");
 
         out.add(responseNotify);
-        out.add(lobby);
+        out.add(lobbyInvitation);
 
         LoggerUtil.logInfo("<- Risposta invite friend to lobby");
         return ResponseEntity.ok().body(out);

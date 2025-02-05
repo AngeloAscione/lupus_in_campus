@@ -45,10 +45,8 @@ public class NotificationController {
     public NotificationController(DeviceDAO deviceDAO) {this.deviceDAO = deviceDAO;}
 
     @PutMapping("/save-token")
-    public ResponseEntity<?> saveToken(@RequestBody SaveTokenRequest saveTokenRequest) {
+    public ResponseEntity<?> saveToken(@RequestBody SaveTokenRequest saveTokenRequest, HttpSession session) {
         LoggerUtil.logInfo("-> Ricevuta richiesta save-token");
-    @PostMapping("/save-token")
-    public ResponseEntity<?> saveToken(HttpSession session, @RequestParam String deviceToken) {
         if (!Session.sessionIsActive(session)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                     new MessageResponse(
@@ -64,8 +62,6 @@ public class NotificationController {
         Device device = new Device();
         device.setDeviceToken(saveTokenRequest.getToken());
         device.setPlayerID(saveTokenRequest.getPlayerId());
-        device.setDeviceToken(deviceToken);
-        device.setPlayerID(player.getId());
         deviceDAO.save(device);
 
         LoggerUtil.logInfo("<- Risposta save-token");
@@ -86,14 +82,16 @@ public class NotificationController {
 
         DevicePk devicePk = new DevicePk();
         devicePk.setPlayerID(sendNotificationRequest.getReceiverId());
-        List<Device> devices = deviceDAO.findDevicesByDevicePk(devicePk);
+        List<Device> devices = deviceDAO.findDevicesByDevicePkPlayerID(devicePk.getPlayerID());
 
         if (devices.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nessun dispositivo trovato per questo utente.");
         }
 
         // create payload
-        Map<String, Object> payload = createPayload(devices, message);
+        Player p = (Player) session.getAttribute("player");
+        String message = "Hai un messaggio da " + p.getNickname() + "\n";
+        Map<String, Object> payload = createPayload(devices, message + sendNotificationRequest.getMessage());
 
         // send notification
         ResponseEntity<?> response;
@@ -101,14 +99,12 @@ public class NotificationController {
             response = sendHttpToPushy(payload);
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    new MessageResponse(
-                            -1,
-                            "Errore nell'invio della notifica, prob. perché non combaciano i token"
-                    )
+                new MessageResponse(
+                        -1,
+                        "Errore nell'invio della notifica, prob. perché non combaciano i token"
+                )
             );
         }
-        System.out.println("####################### response");
-
 
         LoggerUtil.logInfo("<- Risposta send notification");
         return ResponseEntity.ok(response.getBody());
