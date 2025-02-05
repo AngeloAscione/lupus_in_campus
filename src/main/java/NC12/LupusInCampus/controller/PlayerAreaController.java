@@ -7,6 +7,7 @@ import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
 import NC12.LupusInCampus.model.Game;
 import NC12.LupusInCampus.model.Player;
+import NC12.LupusInCampus.utils.LoggerUtil;
 import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
 import NC12.LupusInCampus.utils.Session;
 import jakarta.servlet.http.HttpSession;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("controller/player-area")
@@ -35,6 +37,7 @@ public class PlayerAreaController {
 
     @GetMapping("")
     public ResponseEntity<?> getPlayerArea(HttpSession session) {
+        LoggerUtil.logInfo("-> Ricevuta richiesta get Player Area");
         if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
@@ -56,6 +59,7 @@ public class PlayerAreaController {
         allInfo.add(friendDAO.findPendingFriendRequests(player.getId()));
 
         // return all info
+        LoggerUtil.logInfo("<- Risposta get Player Area");
         return ResponseEntity.ok().body(new MessageResponse(
                 SuccessMessages.LOAD_ALL_INFO.getCode(),
                 SuccessMessages.LOAD_ALL_INFO.getMessage(),
@@ -64,13 +68,16 @@ public class PlayerAreaController {
     }
 
     @PostMapping("/edit-player-data")
-    public ResponseEntity<?> editPlayerData(HttpSession session, @RequestParam String newNickname) {
+    public ResponseEntity<?> editPlayerData(HttpSession session, @RequestBody Map<String, String> param) {
+        LoggerUtil.logInfo("-> Ricevuta richiesta edit Player data");
         if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
             )
         );
+
+        String newNickname = param.get("newNickname");
 
         if (playerDAO.findPlayerByNickname(newNickname) != null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
@@ -85,6 +92,7 @@ public class PlayerAreaController {
         player.setNickname(newNickname);
         session.setAttribute("player", player);
 
+        LoggerUtil.logInfo("<- Rispsota richiesta edit Player data");
         return ResponseEntity.ok().body(
             new MessageResponse(
                     SuccessMessages.SUCCESS_EDIT.getCode(),

@@ -1,8 +1,12 @@
 package NC12.LupusInCampus.controller;
 
+import NC12.LupusInCampus.dto.player.LoginRequest;
+import NC12.LupusInCampus.dto.player.RegistrationRequest;
 import NC12.LupusInCampus.model.dao.PlayerDAO;
 import NC12.LupusInCampus.model.Player;
 import NC12.LupusInCampus.service.PasswordResetService;
+import NC12.LupusInCampus.utils.LoggerUtil;
+import NC12.LupusInCampus.utils.Session;
 import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
 import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
@@ -18,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 @Controller
 @RequestMapping(value="controller/player")
@@ -32,9 +38,14 @@ public class PlayerController {
         this.passwordResetService = passwordResetService;
     }
 
-    @PostMapping("/registration")
-    public ResponseEntity<?> playerRegistration(
-            @RequestParam String nickname, @RequestParam String email, @RequestParam String password, HttpSession session) {
+    @PutMapping("/registration")
+    public ResponseEntity<?> playerRegistration(@RequestBody RegistrationRequest registrationRequest, HttpSession session) {
+
+        LoggerUtil.logInfo("-> Ricevuta richiesta registrazione");
+
+        String nickname = registrationRequest.getNickname();
+        String password = registrationRequest.getPassword();
+        String email = registrationRequest.getEmail();
 
         List<String> errors = validPlayerRegistration(nickname, email, password);
         MessageResponse response;
@@ -47,6 +58,7 @@ public class PlayerController {
                     errors
             );
 
+            LoggerUtil.logError("<- Rispsota richiesta registrazione", new Exception(response.toString()));
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
@@ -63,12 +75,16 @@ public class PlayerController {
                 SuccessMessages.REGISTRATION_SUCCESS.getMessage(),
                 newPlayer
         );
+        LoggerUtil.logInfo("<- Risposta registrazione");
         return ResponseEntity.ok().body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> playerLogin(@RequestParam String email, @RequestParam String password, HttpSession session) {
+    public ResponseEntity<?> playerLogin(@RequestBody LoginRequest loginRequest, HttpSession session) {
 
+        LoggerUtil.logInfo("-> Ricevuta richiesta login");
+        String email = loginRequest.getEmail();
+        String password = loginRequest.getPassword();
         List<String> errors = validPlayerLogin(email, password);
         MessageResponse response;
 
@@ -79,6 +95,7 @@ public class PlayerController {
                     HttpStatus.UNAUTHORIZED.getReasonPhrase(),
                     errors
             );
+            LoggerUtil.logError("<- Risposta richiesta login", new Exception(response.toString()));
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
@@ -92,12 +109,14 @@ public class PlayerController {
                 SuccessMessages.LOGIN_SUCCESS.getMessage(),
                 player
         );
-        return ResponseEntity.ok().body(response);
 
+        LoggerUtil.logInfo("<- Risposta richiesta login");
+        return ResponseEntity.ok().body(response);
     }
 
     @GetMapping("/logout")
     public ResponseEntity<?> playerLogout(HttpSession session) {
+        LoggerUtil.logInfo("-> Ricevuta richiesta logout");
         Player player = (Player) session.getAttribute("player");
         MessageResponse response;
 
@@ -108,6 +127,7 @@ public class PlayerController {
                     SuccessMessages.LOGOUT_SUCCESS.getCode(),
                     SuccessMessages.LOGOUT_SUCCESS.getMessage()
             );
+            LoggerUtil.logError("<- Risposta richiesta logout", new Exception(response.toString()));
             return ResponseEntity.ok().body(response);
         }
 
@@ -116,41 +136,50 @@ public class PlayerController {
                 ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
         );
 
+        LoggerUtil.logError("<- Risposta richiesta logout", new Exception(response.toString()));
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
-    @PostMapping("/delete")
-    public ResponseEntity<?> deletePlayer(@RequestParam String id) {
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deletePlayer(@RequestBody Map<String, Integer> params, HttpSession session) {
 
+        LoggerUtil.logInfo("-> Ricevuta richiesta delete");
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                new MessageResponse(
+                        ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
+                        ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
+                )
+        );
+
+        Player player = (Player) session.getAttribute("player");
+        int id = params.get("playerId");
         MessageResponse response;
 
-        if (id.isEmpty() || id.isBlank()){
-
-            response = new MessageResponse(
-                    ErrorMessages.EMPTY_ID.getCode(),
-                    ErrorMessages.EMPTY_ID.getMessage()
-            );
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
-
-        int id_player = Integer.parseInt(id);
-        Player player = playerDAO.findPlayerById(id_player);
-
-        if (player != null) {
+        if (player != null && id == player.getId()) {
             playerDAO.delete(player);
 
             response = new MessageResponse(
                     SuccessMessages.PLAYER_DELETED.getCode(),
                     SuccessMessages.PLAYER_DELETED.getMessage()
             );
+            LoggerUtil.logInfo("<- Risposta richiesta delete");
             return ResponseEntity.ok().body(response);
+        }
 
+        if (id == 0) {
+            response = new MessageResponse(
+                    ErrorMessages.EMPTY_ID.getCode(),
+                    ErrorMessages.EMPTY_ID.getMessage()
+            );
+            LoggerUtil.logError("<- Risposta richiesta delete", new Exception(response.toString()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
         response = new MessageResponse(
                 ErrorMessages.PLAYER_NOT_FOUND.getCode(),
                 ErrorMessages.PLAYER_NOT_FOUND.getMessage()
         );
+        LoggerUtil.logError("<- Risposta richiesta delete", new Exception(response.toString()));
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 
     }
@@ -158,12 +187,15 @@ public class PlayerController {
 
     /**
      * Post request for requesting password change
-     * @param email URL parameter with player's email
+     * @param params Body parameters with player's email
      * @return Sends and email to the player who has requested password change
      */
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> params) {
 
+        LoggerUtil.logInfo("-> Ricevuta richiesta forgotPassword");
+
+        String email = params.get("email");
         if (!Validator.emailIsValid(email)) {
             MessageResponse response = new MessageResponse(ErrorMessages.EMAIL_FORMAT.getCode(), ErrorMessages.EMAIL_FORMAT.getMessage());;
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
@@ -174,6 +206,7 @@ public class PlayerController {
             username = playerDAO.findPlayerByEmail(email).getNickname();
         } catch (NullPointerException e) {
             MessageResponse response = new MessageResponse(ErrorMessages.EMAIL_NOT_REGISTERED.getCode(), ErrorMessages.EMAIL_NOT_REGISTERED.getMessage());;
+            LoggerUtil.logError("<- Risposta richiesta forgotPassword", new Exception(response.toString()));
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
@@ -196,12 +229,14 @@ public class PlayerController {
 
         Email.getInstance().sendEmail(email, "Recupera Password", body);
 
-        return ResponseEntity.ok().body("Email enviata correttamente");
+        LoggerUtil.logInfo("<- Ricevuta richiesta forgotPassword");
+        return ResponseEntity.ok().body("Email sent");
     }
 
 
     @GetMapping("/reset-password")
     public String resetPassword(@RequestParam String token, Model model) {
+        LoggerUtil.logInfo("-> Ricevuta richiesta resetPassword");
         try{
             Player p = passwordResetService.validateResetToken(token);
             model.addAttribute("username", p.getNickname());
@@ -214,9 +249,10 @@ public class PlayerController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String password) {
+    public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> params) {
+        LoggerUtil.logInfo("-> Ricevuta richiesta resetPassword");
         try {
-            passwordResetService.resetPassword(token, password);
+            passwordResetService.resetPassword(params.get("token"), params.get("password"));
             return ResponseEntity.ok("Password has been reset successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());

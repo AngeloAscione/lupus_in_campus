@@ -1,10 +1,14 @@
 package NC12.LupusInCampus.controller;
 
+import NC12.LupusInCampus.dto.lobby.CreateLobbyRequest;
+import NC12.LupusInCampus.dto.lobby.InviteFriendToLobbyRequest;
+import NC12.LupusInCampus.dto.lobby.ModifyLobbyRequest;
 import NC12.LupusInCampus.model.dao.LobbyDAO;
 import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
 import NC12.LupusInCampus.model.Lobby;
 import NC12.LupusInCampus.model.Player;
+import NC12.LupusInCampus.utils.LoggerUtil;
 import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
 import NC12.LupusInCampus.utils.Session;
 import NC12.LupusInCampus.model.dao.LobbyInvitationDAO;
@@ -14,10 +18,8 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.util.LoggingUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -43,6 +45,7 @@ public class LobbyController {
     @GetMapping("/active-public-lobbies")
     public ResponseEntity<?> getActivePublicLobbies(HttpSession session) {
 
+        LoggerUtil.logInfo("-> Ricevuta richiesta get active public lobbies");
         if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
@@ -65,17 +68,16 @@ public class LobbyController {
                 lobbies
         );
 
+        LoggerUtil.logInfo("<- Risposta get active public lobbies");
         return ResponseEntity.ok().body(response);
     }
 
 
     // to create a lobby
-    @GetMapping("/create-lobby")
-    public ResponseEntity<?> createLobby(@RequestParam String minNumPlayer,
-                                         @RequestParam String maxNumPlayer,
-                                         @RequestParam String tipo /*'Pubblica' o 'Privata'*/,
-                                         HttpSession session) {
+    @PutMapping("/create-lobby")
+    public ResponseEntity<?> createLobby(@RequestBody CreateLobbyRequest createLobbyRequest, HttpSession session) {
 
+        LoggerUtil.logInfo("-> Ricevuta richiesta create lobby");
         if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
@@ -91,10 +93,10 @@ public class LobbyController {
         newLobby.setCode(createLobbyCode());
         newLobby.setCreatorID(idCreator);
         newLobby.setCreationDate(LocalDateTime.now());
-        newLobby.setMinNumPlayer(Integer.parseInt(minNumPlayer));
+        newLobby.setMinNumPlayer(createLobbyRequest.getMinNumPlayer());
         newLobby.setNumPlayer(1); //here should always be 1
-        newLobby.setMaxNumPlayer(Integer.parseInt(maxNumPlayer));
-        newLobby.setType(tipo);
+        newLobby.setMaxNumPlayer(createLobbyRequest.getMaxNumPlayer());
+        newLobby.setType(createLobbyRequest.getTipo());
         newLobby.setState("Attesa giocatori");
 
         lobbyDAO.save(newLobby);
@@ -106,16 +108,19 @@ public class LobbyController {
                 SuccessMessages.LOBBY_CREATED.getMessage(),
                 newLobby
         );
+
+        LoggerUtil.logInfo("<- Risposta create lobby");
         return ResponseEntity.ok().body(response);
-
-
     }
 
     // to delete a created lobby
-    @GetMapping("/delete-lobby")
-    public ResponseEntity<?> deleteLobby(@RequestParam String code){
-        lobbyDAO.deleteById(Integer.parseInt(code));
-        lobbyLists.remove(Integer.parseInt(code));
+    @DeleteMapping("/delete-lobby")
+    public ResponseEntity<?> deleteLobby(@RequestBody Map<String, Integer> params){
+        LoggerUtil.logInfo("-> Ricevuta richiesta delete lobby");
+        int code = params.get("code");
+        lobbyDAO.deleteById(code);
+        lobbyLists.remove(code);
+        LoggerUtil.logInfo("<- Risposta delete lobby");
         return ResponseEntity.ok().body(new MessageResponse(
                 SuccessMessages.LOBBY_DELETED.getCode(),
                 SuccessMessages.LOBBY_DELETED.getMessage())
@@ -123,10 +128,11 @@ public class LobbyController {
     }
 
     // for the player who wants to join a lobby
-    @GetMapping("/join-lobby")
-    public ResponseEntity<?> joinLobby(@RequestParam String codeLobby, HttpSession session) {
+    @PostMapping("/join-lobby")
+    public ResponseEntity<?> joinLobby(@RequestBody Map<String, Integer> params, HttpSession session) {
+        LoggerUtil.logInfo("-> Ricevuta richiesta join lobby");
         MessageResponse response;
-        int code = Integer.parseInt(codeLobby);
+        int code = params.get("code");
 
         if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
@@ -167,17 +173,16 @@ public class LobbyController {
             SuccessMessages.PLAYER_ADDED_LOBBY.getMessage(),
             lobby
         );
+        LoggerUtil.logInfo("<- Risposta join lobby");
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("/modify-lobby")
-    public ResponseEntity<?> modifyLobby(@RequestParam String codeLobby,
-                                         @RequestParam String minNumPlayer,
-                                         @RequestParam String maxNumPlayer,
-                                         HttpSession session) {
+    @PostMapping("/modify-lobby")
+    public ResponseEntity<?> modifyLobby(@RequestBody ModifyLobbyRequest modifyLobbyRequest, HttpSession session) {
 
-        int code = Integer.parseInt(codeLobby);
+        LoggerUtil.logInfo("-> Ricevuta richiesta modify lobby");
 
+        int code = modifyLobbyRequest.getCodeLobby();
         if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 new MessageResponse(
                         ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
@@ -193,7 +198,7 @@ public class LobbyController {
         );
 
 
-        lobbyDAO.updateLobbyByCode(code, Integer.parseInt(minNumPlayer), Integer.parseInt(maxNumPlayer), lobbyLists.get(code).size());
+        lobbyDAO.updateLobbyByCode(code, modifyLobbyRequest.getMinNumPlayer(), modifyLobbyRequest.getMaxNumPlayer(), lobbyLists.get(code).size());
         Lobby lobby = lobbyDAO.findLobbyByCode(code);
 
         MessageResponse response = new MessageResponse(
@@ -202,14 +207,16 @@ public class LobbyController {
             lobby
         );
 
+        LoggerUtil.logInfo("<- Ricevuta modify lobby");
         return ResponseEntity.ok().body(response);
 
     }
 
     // for the player who wants to leave a lobby
-    @GetMapping("/leave-lobby")
-    public ResponseEntity<?> leaveLobby(@RequestParam String codeLobby, HttpSession session) {
-        int code = Integer.parseInt(codeLobby);
+    @PostMapping("/leave-lobby")
+    public ResponseEntity<?> leaveLobby(@RequestParam Map<String, Integer> params, HttpSession session) {
+        LoggerUtil.logInfo("-> Ricevuta richiesta leave lobby");
+        int code = params.get("codeLobby");
 
         if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
@@ -235,11 +242,14 @@ public class LobbyController {
                 SuccessMessages.PLAYER_REMOVED_LOBBY.getMessage(),
                 lobby
         );
+        LoggerUtil.logInfo("<- Risposta leave lobby");
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("/invite-friend-lobby")
-    public ResponseEntity<?> inviteFriendLobby(@RequestParam String idFriend, @RequestParam String codeLobby, HttpSession session) {
+    @PostMapping("/invite-friend-lobby")
+    public ResponseEntity<?> inviteFriendLobby(@RequestBody InviteFriendToLobbyRequest inviteFriendToLobbyRequest, HttpSession session) {
+
+        LoggerUtil.logInfo("-> Ricevuta richiesta invite friend to lobby");
         if(!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 new MessageResponse(
                         ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
@@ -253,19 +263,20 @@ public class LobbyController {
 
         LobbyInvitation lobbyInvitation = new LobbyInvitation();
         lobbyInvitation.setSendingPlayerId(player.getId());
-        lobbyInvitation.setInvitedPlayerId(Integer.parseInt(idFriend));
+        lobbyInvitation.setInvitedPlayerId(inviteFriendToLobbyRequest.getFriendId());
         lobbyInvitation.setDataInvitation(LocalDateTime.now());
         lobbyInvitationDAO.save(lobbyInvitation);
 
-        ResponseEntity<?> responseNotify = WebClientNotification.sendNotificationWebClient(idFriend,
+        ResponseEntity<?> responseNotify = WebClientNotification.sendNotificationWebClient(String.valueOf(inviteFriendToLobbyRequest.getFriendId()),
                 "Invito ad entrare in lobby");
 
         //I don't know if we need to return the lobby, then we'll see
-        Lobby lobby = lobbyDAO.findLobbyByCode(Integer.parseInt(codeLobby));
+        Lobby lobby = lobbyDAO.findLobbyByCode(inviteFriendToLobbyRequest.getCodeLobby());
 
         out.add(responseNotify);
         out.add(lobby);
 
+        LoggerUtil.logInfo("<- Risposta invite friend to lobby");
         return ResponseEntity.ok().body(out);
     }
 

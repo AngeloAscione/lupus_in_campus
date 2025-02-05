@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FriendRequestDAO extends JpaRepository<FriendRequest, FriendRequestPk> {
     boolean existsFriendRequestByFriendRequestPk(FriendRequestPk friendRequestPk);
+    FriendRequest findByFriendRequestPk(FriendRequestPk friendRequestPk);
 }

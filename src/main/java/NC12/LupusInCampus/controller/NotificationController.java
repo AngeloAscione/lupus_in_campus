@@ -1,8 +1,17 @@
 package NC12.LupusInCampus.controller;
 
+import NC12.LupusInCampus.dto.notification.SaveTokenRequest;
+import NC12.LupusInCampus.dto.notification.SendNotificationRequest;
 import NC12.LupusInCampus.model.DevicePk;
+import NC12.LupusInCampus.model.Player;
 import NC12.LupusInCampus.model.dao.DeviceDAO;
 import NC12.LupusInCampus.model.Device;
+import NC12.LupusInCampus.model.enums.ErrorMessages;
+import NC12.LupusInCampus.utils.LoggerUtil;
+import NC12.LupusInCampus.utils.Session;
+import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -28,23 +37,32 @@ public class NotificationController {
     @Autowired
     public NotificationController(DeviceDAO deviceDAO) {this.deviceDAO = deviceDAO;}
 
-    @PostMapping("/save-token")
-    public ResponseEntity<?> saveToken(@RequestParam String playerID, @RequestParam String deviceToken) {
-
-        //insert token in DB
+    @PutMapping("/save-token")
+    public ResponseEntity<?> saveToken(@RequestBody SaveTokenRequest saveTokenRequest) {
+        LoggerUtil.logInfo("-> Ricevuta richiesta save-token");
         Device device = new Device();
-        device.setDeviceToken(deviceToken);
-        device.setPlayerID(Integer.parseInt(playerID));
+        device.setDeviceToken(saveTokenRequest.getToken());
+        device.setPlayerID(saveTokenRequest.getPlayerId());
         deviceDAO.save(device);
 
+        LoggerUtil.logInfo("<- Risposta save-token");
         return ResponseEntity.ok().body("Token salvato");
     }
 
     @PostMapping("/send")
-    public ResponseEntity<?> sendNotification(@RequestParam String receivingPlayerID, @RequestParam String message) {
+    public ResponseEntity<?> sendNotification(@RequestBody SendNotificationRequest sendNotificationRequest, HttpSession session) {
+
+        LoggerUtil.logInfo("-> Ricevuta richiesta send notification");
+
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                new MessageResponse(
+                        ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
+                        ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
+                )
+        );
 
         DevicePk devicePk = new DevicePk();
-        devicePk.setPlayerID(Integer.parseInt(receivingPlayerID));
+        devicePk.setPlayerID(sendNotificationRequest.getReceiverId());
         List<Device> devices = deviceDAO.findDevicesByDevicePk(devicePk);
 
         if (devices.isEmpty()) {
@@ -52,11 +70,14 @@ public class NotificationController {
         }
 
         // create payload
-        Map<String, Object> payload = createPayload(devices, message);
+        Player p = (Player) session.getAttribute("player");
+        String message = "Hai un messaggio da " + p.getNickname() + "\n";
+        Map<String, Object> payload = createPayload(devices, message + sendNotificationRequest.getMessage());
 
         // send notification
         ResponseEntity<String> response = sendHttpToPushy(payload);
 
+        LoggerUtil.logInfo("<- Risposta send notification");
         return ResponseEntity.ok(response.getBody());
     }
 
