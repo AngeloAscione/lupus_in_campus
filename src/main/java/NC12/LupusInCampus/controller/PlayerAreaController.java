@@ -80,7 +80,8 @@ public class PlayerAreaController {
         );
 
         Player player = (Player) session.getAttribute("player");
-        playerDAO.updatePlayerById(player.getId(), newNickname);
+        player.setNickname(newNickname);
+        playerDAO.save(player);
 
         player.setNickname(newNickname);
         session.setAttribute("player", player);

@@ -2,11 +2,8 @@ package NC12.LupusInCampus.model.dao;
 
 import NC12.LupusInCampus.model.Player;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -26,8 +23,4 @@ public interface PlayerDAO extends JpaRepository<Player, Integer> {
 
     Player findPlayerByEmailAndPassword(@RequestParam String email, @RequestParam String password);
 
-    @Modifying
-    @Transactional
-    @Query(value = "UPDATE giocatore SET nickname=:nick WHERE ID=:id ", nativeQuery = true)
-    void updatePlayerById(@RequestParam int id, @Param("nick") String nickname);
 }

@@ -5,6 +5,7 @@ import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
 import NC12.LupusInCampus.model.Lobby;
 import NC12.LupusInCampus.model.Player;
+import NC12.LupusInCampus.service.ListPlayersLobbiesService;
 import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
 import NC12.LupusInCampus.utils.Session;
 import NC12.LupusInCampus.model.dao.LobbyInvitationDAO;
@@ -17,11 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("controller/lobby")
@@ -29,15 +27,18 @@ public class LobbyController {
 
     private final LobbyDAO lobbyDAO;
     private final LobbyInvitationDAO lobbyInvitationDAO;
-    private static final Map<Integer, List<Player>> lobbyLists = new ConcurrentHashMap<>();
     private final NotificationCaller notificationCaller;
+    private final ListPlayersLobbiesService lobbyLists = new ListPlayersLobbiesService();
 
 
     @Autowired
-    public LobbyController(LobbyDAO lobbyDAO, LobbyInvitationDAO lobbyInvitationDAO, NotificationCaller notificationCaller) {this.lobbyDAO = lobbyDAO;
+    public LobbyController(LobbyDAO lobbyDAO, LobbyInvitationDAO lobbyInvitationDAO, NotificationCaller notificationCaller) {
+        this.lobbyDAO = lobbyDAO;
         this.lobbyInvitationDAO = lobbyInvitationDAO;
         this.notificationCaller = notificationCaller;
     }
+
+    // TODO aggiungere la funzione per prendere le richieste di invito lobby del giocatore
 
     //to receive a list of all active public lobbies
     @GetMapping("/active-public-lobbies")
@@ -73,7 +74,7 @@ public class LobbyController {
     @GetMapping("/create-lobby")
     public ResponseEntity<?> createLobby(@RequestParam String minNumPlayer,
                                          @RequestParam String maxNumPlayer,
-                                         @RequestParam String tipo /*'Pubblica' o 'Privata'*/,
+                                             @RequestParam String tipo /*'Pubblica' o 'Privata'*/,
                                          HttpSession session) {
 
         if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
@@ -98,8 +99,8 @@ public class LobbyController {
         newLobby.setState("Attesa giocatori");
 
         lobbyDAO.save(newLobby);
-        lobbyLists.putIfAbsent(newLobby.getCode(), new ArrayList<>());
-        lobbyLists.get(newLobby.getCode()).add(playerCreator);
+        lobbyLists.addLobbyCode(newLobby.getCode());
+        lobbyLists.addPlayer(playerCreator, newLobby.getCode());
 
         MessageResponse response = new MessageResponse(
                 SuccessMessages.LOBBY_CREATED.getCode(),
@@ -115,7 +116,7 @@ public class LobbyController {
     @GetMapping("/delete-lobby")
     public ResponseEntity<?> deleteLobby(@RequestParam String code){
         lobbyDAO.deleteById(Integer.parseInt(code));
-        lobbyLists.remove(Integer.parseInt(code));
+        lobbyLists.removeLobbyCode(Integer.parseInt(code));
         return ResponseEntity.ok().body(new MessageResponse(
                 SuccessMessages.LOBBY_DELETED.getCode(),
                 SuccessMessages.LOBBY_DELETED.getMessage())
@@ -135,7 +136,7 @@ public class LobbyController {
             )
         );
 
-        if (!lobbyLists.containsKey(code)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!lobbyLists.containsCode(code)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.LOBBY_NOT_FOUND.getCode(),
                     ErrorMessages.LOBBY_NOT_FOUND.getMessage()
@@ -143,7 +144,7 @@ public class LobbyController {
         );
 
         Lobby lobby = lobbyDAO.findLobbyByCode(code);
-        if (lobbyLists.get(code).size() >= lobby.getMaxNumPlayer()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (lobbyLists.getListPlayers(code).size() >= lobby.getMaxNumPlayer()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.LIMIT_PLAYER_LOBBY.getCode(),
                     ErrorMessages.LIMIT_PLAYER_LOBBY.getMessage()
@@ -151,7 +152,7 @@ public class LobbyController {
         );
 
         Player player = (Player) session.getAttribute("player");
-        if (lobbyLists.get(code).contains(player)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (lobbyLists.getListPlayers(code).contains(player)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                     ErrorMessages.PLAYER_ALREADY_JOIN.getCode(),
                     ErrorMessages.PLAYER_ALREADY_JOIN.getMessage()
@@ -159,8 +160,8 @@ public class LobbyController {
         );
 
 
-        lobbyLists.get(code).add(player);
-        lobby.setNumPlayer(lobbyLists.get(code).size());
+        lobbyLists.addPlayer(player, code);
+        lobby.setNumPlayer(lobbyLists.getListPlayers(code).size());
 
         response = new MessageResponse(
             SuccessMessages.PLAYER_ADDED_LOBBY.getCode(),
@@ -185,16 +186,18 @@ public class LobbyController {
                 )
         );
 
-        if (!lobbyLists.containsKey(code)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!lobbyLists.containsCode(code)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 new MessageResponse(
                         ErrorMessages.LOBBY_NOT_FOUND.getCode(),
                         ErrorMessages.LOBBY_NOT_FOUND.getMessage()
                 )
         );
 
-
-        lobbyDAO.updateLobbyByCode(code, Integer.parseInt(minNumPlayer), Integer.parseInt(maxNumPlayer), lobbyLists.get(code).size());
         Lobby lobby = lobbyDAO.findLobbyByCode(code);
+        lobby.setMinNumPlayer(Integer.parseInt(minNumPlayer));
+        lobby.setMaxNumPlayer(Integer.parseInt(maxNumPlayer));
+        lobby.setNumPlayer(lobbyLists.getListPlayers(code).size());
+        lobbyDAO.save(lobby);
 
         MessageResponse response = new MessageResponse(
             SuccessMessages.LOBBY_MODIFIED.getCode(),
@@ -219,16 +222,16 @@ public class LobbyController {
         );
 
         Player player = (Player) session.getAttribute("player");
-        if (!lobbyLists.get(code).contains(player)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+        if (!lobbyLists.containsPlayer(code, player)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new MessageResponse(
                 ErrorMessages.PLAYER_NOT_FOUND.getCode(),
                 ErrorMessages.PLAYER_NOT_FOUND.getMessage()
             )
         );
 
-        lobbyLists.get(code).remove(player);
+        lobbyLists.removePlayer(player, code);
         Lobby lobby = lobbyDAO.findLobbyByCode(code);
-        lobby.setNumPlayer(lobbyLists.get(code).size());
+        lobby.setNumPlayer(lobbyLists.getListPlayers(code).size());
 
         MessageResponse response = new MessageResponse(
                 SuccessMessages.PLAYER_REMOVED_LOBBY.getCode(),
