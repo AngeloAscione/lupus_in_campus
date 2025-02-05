@@ -38,7 +38,21 @@ public class LobbyController {
         this.notificationCaller = notificationCaller;
     }
 
-    // TODO aggiungere la funzione per prendere le richieste di invito lobby del giocatore
+    @GetMapping("/lobby-invitations")
+    public ResponseEntity<?> getLobbyInvitations(HttpSession session) {
+        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            new MessageResponse(
+                ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
+                ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
+            )
+        );
+
+        Player player = (Player) session.getAttribute("player");
+
+        List<LobbyInvitation> invitations =  lobbyInvitationDAO.findLobbyInvitationsByLobbyInvitationPkInvitedPlayerId(player.getId());
+
+        return ResponseEntity.ok().body(invitations);
+    }
 
     //to receive a list of all active public lobbies
     @GetMapping("/active-public-lobbies")

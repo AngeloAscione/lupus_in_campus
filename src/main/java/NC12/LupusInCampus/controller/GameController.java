@@ -35,7 +35,7 @@ public class GameController {
         this.gameDAO = gameDAO;
     }
 
-    @GetMapping("/play-save")
+    @GetMapping("/save-game-state")
     public ResponseEntity<?> playSave(@RequestParam String codeLobby) {
         if (!lobbyDAO.existsLobbyByCode(Integer.parseInt(codeLobby))) {
             new MessageResponse(
@@ -67,7 +67,7 @@ public class GameController {
             gameDAO.saveParticipants(game.getId(), player.getId(), player.getRole());
         }
 
-        return ResponseEntity.ok().body("ok, gestione salvata inizo partita");
+        return ResponseEntity.ok().body("ok, gestione salvata può iniziare la partita");
     }
 
     public List<Player> roleAssignment(List<Player> players) {
