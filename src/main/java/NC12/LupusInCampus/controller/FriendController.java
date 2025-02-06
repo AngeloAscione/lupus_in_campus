@@ -130,8 +130,8 @@ public class FriendController {
 
 
 
-    @PostMapping("/add-friend")
-    public ResponseEntity<?> addFriend(@RequestBody AddFriendRequest addFriendRequest) {
+    @PostMapping("/friend-request")
+    public ResponseEntity<?> handleFriendRequest(@RequestBody AddFriendRequest addFriendRequest) {
         LoggerUtil.logInfo("-> Ricevuta richiesta di add friend");
         LoggerUtil.logInfo(addFriendRequest.toString());
         FriendRequestPk friendRequestPk = new FriendRequestPk();
