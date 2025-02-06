@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 @RestController
 @RequestMapping("controller/game")
@@ -72,15 +72,53 @@ public class GameController {
 
     public List<Player> roleAssignment(List<Player> players) {
 
-        PlayerRole[] roles = PlayerRole.values();
+        int numPlayers = players.size();
+        List<PlayerRole> availableRoles = new ArrayList<>();
 
-        for (Player player : players) {
-            PlayerRole randomRole = roles[ThreadLocalRandom.current().nextInt(roles.length)];
-            player.setRole(randomRole.getText());
+        if (isBetween(numPlayers, 6, 8)) {
+
+            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
+            availableRoles.add(PlayerRole.RECTOR);
+            availableRoles.add(PlayerRole.RESEARCHER);
+            availableRoles.add(PlayerRole.GRADUATE);
+
+        }else if (isBetween(numPlayers, 9, 12)) {
+
+            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
+            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
+            availableRoles.add(PlayerRole.RECTOR);
+            availableRoles.add(PlayerRole.RESEARCHER);
+            availableRoles.add(PlayerRole.GRADUATE);
+
+            if (numPlayers == 12){
+                availableRoles.add(PlayerRole.GRADUATE);
+            }
+
+        }else if (isBetween(numPlayers, 13, 18)) {
+            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
+            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
+            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
+            availableRoles.add(PlayerRole.RECTOR);
+            availableRoles.add(PlayerRole.RESEARCHER);
+            availableRoles.add(PlayerRole.GRADUATE);
+            availableRoles.add(PlayerRole.GRADUATE);
+        }
+
+        // Assegna i ruoli casualmente ai giocatori
+        Collections.shuffle(players);
+        for (int i = 0; i < availableRoles.size(); i++) {
+            players.get(i).setRole(availableRoles.get(i).getText());
+        }
+
+        // I restanti sono contadini
+        for (int i = availableRoles.size(); i < numPlayers; i++) {
+            players.get(i).setRole(PlayerRole.STUDENT_IN_COURSE.getText());
         }
 
         return players;
     }
 
-
+    public static boolean isBetween(int x, int min, int max){
+        return x >= min && x <= max;
+    }
 }
