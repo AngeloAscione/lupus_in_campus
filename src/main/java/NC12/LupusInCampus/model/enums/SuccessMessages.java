@@ -40,4 +40,12 @@ public enum SuccessMessages {
     public String getMessage() {
         return message;
     }
+
+    @Override
+    public String toString() {
+        return "{\"SuccessMessages\":{" +
+                "\"message\":\"" + message + '\"' +
+                ", \"code\":" + code +
+                "}}";
+    }
 }

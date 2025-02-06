@@ -24,8 +24,8 @@ public class MessagesResponse {
 
     @Override
     public String toString() {
-        return "MessagesResponse{" +
-                "messages=" + messages +
-                '}';
+        return "{\"MessagesResponse\":{" +
+                "\"messages\":" + messages +
+                "}}";
     }
 }

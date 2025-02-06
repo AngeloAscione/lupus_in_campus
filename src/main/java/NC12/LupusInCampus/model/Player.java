@@ -84,13 +84,13 @@ public class Player {
 
     @Override
     public String toString() {
-        return "Player{" +
-                "id=" + id +
-                ", nickname='" + nickname + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", friendsList=" + friendsList +
-                ", role='" + role + '\'' +
-                '}';
+        return "{\"player\":{" +
+                "\"id\":" + id +
+                ", \"nickname\":\"" + nickname + '\"' +
+                ", \"email\":\"" + email + '\"' +
+                ", \"password\":\"" + password + '\"' +
+                ", \"friendsList\":" + friendsList +
+                ", \"role\":\"" + role + '\"' +
+                "}}";
     }
 }
