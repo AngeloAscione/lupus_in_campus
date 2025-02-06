@@ -45,7 +45,7 @@ public enum ErrorMessages {
 
     @Override
     public String toString() {
-        return "{\"ErrorMessages\":{" +
+        return "{\"Enum\":{" +
                 "\"message\":\"" + message + '\"' +
                 ", \"code\":" + code +
                 "}}";

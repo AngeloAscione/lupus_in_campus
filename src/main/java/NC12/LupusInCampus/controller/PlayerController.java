@@ -52,7 +52,7 @@ public class PlayerController {
         List<ErrorMessages> errors = validPlayerRegistration(nickname, email, password);
 
         if (!errors.isEmpty()) {
-            messagesResponse.addMessage(errors.get(0));
+            messagesResponse.addMessage(errors.getFirst());
             LoggerUtil.logError("<- Rispsota richiesta registrazione", new Exception(messagesResponse.toString()));
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messagesResponse);
         }
@@ -71,7 +71,7 @@ public class PlayerController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<MessagesResponse> playerLogin(@RequestBody LoginRequest loginRequest, HttpSession session) {
+    public ResponseEntity<String> playerLogin(@RequestBody LoginRequest loginRequest, HttpSession session) {
 
         MessagesResponse messagesResponse = new MessagesResponse();
 
@@ -83,9 +83,9 @@ public class PlayerController {
 
         if (!errors.isEmpty()) {
             // Sending messages error registration
-            messagesResponse.addMessage(errors.get(0));
+            messagesResponse.addMessage(errors.getFirst());
             LoggerUtil.logError("<- Risposta richiesta login", new Exception(messagesResponse.toString()));
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messagesResponse);
+            return ResponseEntity.status(HttpStatus.OK).body(messagesResponse.toString());
         }
 
         //  If there aren't errors
@@ -93,11 +93,10 @@ public class PlayerController {
         session.setAttribute("player", player);
 
         // sending data player
-
         messagesResponse.addMessage(SuccessMessages.LOGIN_SUCCESS);
         messagesResponse.addMessage(player);
         LoggerUtil.logInfo("<- Risposta richiesta login: " + messagesResponse);
-        return ResponseEntity.status(HttpStatus.OK).body(messagesResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(messagesResponse.toString());
     }
 
     @GetMapping("/logout")

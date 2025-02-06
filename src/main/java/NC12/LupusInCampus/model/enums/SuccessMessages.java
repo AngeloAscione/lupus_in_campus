@@ -43,7 +43,7 @@ public enum SuccessMessages {
 
     @Override
     public String toString() {
-        return "{\"SuccessMessages\":{" +
+        return "{\"Enum\":{" +
                 "\"message\":\"" + message + '\"' +
                 ", \"code\":" + code +
                 "}}";
