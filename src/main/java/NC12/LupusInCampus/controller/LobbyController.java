@@ -20,8 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.thymeleaf.util.LoggingUtils;
-import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -114,9 +112,9 @@ public class LobbyController {
         newLobby.setCode(createLobbyCode());
         newLobby.setCreatorID(idCreator);
         newLobby.setCreationDate(LocalDateTime.now());
-        newLobby.setMinNumPlayer(createLobbyRequest.getMinNumPlayer());
+        newLobby.setMinNumPlayer(6);
         newLobby.setNumPlayer(1); //here should always be 1
-        newLobby.setMaxNumPlayer(createLobbyRequest.getMaxNumPlayer());
+        newLobby.setMaxNumPlayer(18);
         newLobby.setType(createLobbyRequest.getTipo());
         newLobby.setState("Attesa giocatori");
 
