@@ -128,9 +128,7 @@ public class FriendController {
 
     }
 
-
-
-    @PostMapping("/add-friend")
+    @PutMapping("/add-friend")
     public ResponseEntity<?> addFriend(@RequestBody AddFriendRequest addFriendRequest) {
         LoggerUtil.logInfo("-> Ricevuta richiesta di add friend");
         LoggerUtil.logInfo(addFriendRequest.toString());

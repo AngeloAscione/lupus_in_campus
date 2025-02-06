@@ -41,4 +41,13 @@ public class MessageResponse {
     public void setBody(Object body) {
         this.body = body;
     }
+
+    @Override
+    public String toString() {
+        return "MessageResponse{" +
+                "status=" + status +
+                ", statusStr='" + statusStr + '\'' +
+                ", body=" + body +
+                '}';
+    }
 }

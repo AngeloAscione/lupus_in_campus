@@ -4,8 +4,9 @@ import NC12.LupusInCampus.model.PasswordResetToken;
 import NC12.LupusInCampus.model.Player;
 import NC12.LupusInCampus.model.dao.PasswordResetTokenDAO;
 import NC12.LupusInCampus.model.dao.PlayerDAO;
-import NC12.LupusInCampus.service.emails.Email;
+import NC12.LupusInCampus.utils.JsonConfigReader;
 import lombok.RequiredArgsConstructor;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -33,7 +34,9 @@ public class PasswordResetService {
         resetToken.setExpiryDate(Instant.now().plus(EXPIRATION_TIME, ChronoUnit.MINUTES));
         passwordResetTokenDAO.save(resetToken);
 
-        return "http://localhost:8080/controller/player/reset-password?token=" + token;
+        String myip = JsonConfigReader.readFile("app-config.json").get("ip").getAsString();
+
+        return "http://%s:8080/controller/player/reset-password?token=".formatted(myip) + token;
 
     }
 
@@ -58,9 +61,9 @@ public class PasswordResetService {
 
         Player player = resetToken.getPlayer();
 
+        String hashPass = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+        player.setPassword(hashPass);
 
-
-        player.setPassword(newPassword);
         playerDAO.save(player);
 
         passwordResetTokenDAO.delete(resetToken);

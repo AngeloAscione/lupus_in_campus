@@ -75,7 +75,7 @@ public class PlayerController {
                 SuccessMessages.REGISTRATION_SUCCESS.getMessage(),
                 newPlayer
         );
-        LoggerUtil.logInfo("<- Risposta registrazione");
+        LoggerUtil.logInfo("<- Risposta registrazione " + response);
         return ResponseEntity.ok().body(response);
     }
 
@@ -83,6 +83,7 @@ public class PlayerController {
     public ResponseEntity<?> playerLogin(@RequestBody LoginRequest loginRequest, HttpSession session) {
 
         LoggerUtil.logInfo("-> Ricevuta richiesta login");
+        LoggerUtil.logInfo("Sessione creata con id: " + session.getId());
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
         List<String> errors = validPlayerLogin(email, password);
@@ -117,6 +118,7 @@ public class PlayerController {
     @GetMapping("/logout")
     public ResponseEntity<?> playerLogout(HttpSession session) {
         LoggerUtil.logInfo("-> Ricevuta richiesta logout");
+        LoggerUtil.logInfo("SessioneId: " + session.getId());
         Player player = (Player) session.getAttribute("player");
         MessageResponse response;
 
@@ -127,7 +129,7 @@ public class PlayerController {
                     SuccessMessages.LOGOUT_SUCCESS.getCode(),
                     SuccessMessages.LOGOUT_SUCCESS.getMessage()
             );
-            LoggerUtil.logError("<- Risposta richiesta logout", new Exception(response.toString()));
+            LoggerUtil.logInfo("<- Risposta richiesta logout: " + response.toString());
             return ResponseEntity.ok().body(response);
         }
 
@@ -230,6 +232,11 @@ public class PlayerController {
         Email.getInstance().sendEmail(email, "Recupera Password", body);
 
         LoggerUtil.logInfo("<- Ricevuta richiesta forgotPassword");
+        /*MessageResponse response = new MessageResponse(
+
+        );
+
+         */
         return ResponseEntity.ok().body("Email sent");
     }
 

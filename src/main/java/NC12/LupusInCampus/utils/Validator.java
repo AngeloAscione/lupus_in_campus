@@ -9,5 +9,4 @@ public class Validator {
         Pattern pattern = Pattern.compile(EMAIL_REGEX);
         return pattern.matcher(email).matches();
     }
-
 }
