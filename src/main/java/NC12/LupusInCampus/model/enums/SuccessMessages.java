@@ -23,7 +23,10 @@ public enum SuccessMessages {
     LOAD_ALL_INFO(15, "Dati area utente caricati correttamente"),
     SUCCESS_EDIT(16, "Modifiche dei dati effettuate"),
 
-    NOTIFICATION_SENT(17, "Notifica inviata");
+    NOTIFICATION_SENT(17, "Notifica inviata"),
+
+    EMAIL_SENT(18, "Email inviata"),
+    PASSWORD_RESET(19, "Password reimpostata correttamente"),;
 
     private final String message;
     private final int code;

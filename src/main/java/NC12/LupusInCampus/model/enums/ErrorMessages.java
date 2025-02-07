@@ -25,7 +25,9 @@ public enum ErrorMessages {
     PUBLIC_LOBBIES_NOT_FOUND(-14, "Lobby pubbliche attive non presenti"),
     LOBBY_NOT_FOUND(-15, "Lobby non trovata"),
     LIMIT_PLAYER_LOBBY(-16, "Lobby piena"),
-    PLAYER_ALREADY_JOIN(-17, "Giocatore già presente nella lobby");
+    PLAYER_ALREADY_JOIN(-17, "Giocatore già presente nella lobby"),
+
+    RESET_PASSWORD_ERROR(-18, "Qualcosa è andato storto con il reset della password");
 
     private final String message;
     private final int code;
