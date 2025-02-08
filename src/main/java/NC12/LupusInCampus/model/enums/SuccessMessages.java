@@ -18,6 +18,7 @@ public enum SuccessMessages {
     LOBBY_CREATED(11, "Lobby creata con successo"),
     LOBBY_DELETED(12, "Lobby eliminata con successo"),
     LOBBY_MODIFIED(13, "Lobby modificata con successo"),
+    LOBBIES_INIVTATION_LOADED(22, "Inviti lobby caricati correttamente"),
 
     SEARCH(14, "Ricerca effettuata con successo"),
     LOAD_ALL_INFO(15, "Dati area utente caricati correttamente"),
@@ -30,7 +31,9 @@ public enum SuccessMessages {
 
     TOKEN_SAVED(20, "Token dispositivo salvato"),
 
-    FRIEND_REQUEST_REJECTED(21, "Richiesta di amicizia rifiutata");
+    FRIEND_REQUEST_REJECTED(21, "Richiesta di amicizia rifiutata"),
+
+    LOBBY_GAME_STATUS_SAVED(22, "Stato lobby e partita salvati, si può iniziare con lo svolgimento della partita");
 
     private final String message;
     private final int code;

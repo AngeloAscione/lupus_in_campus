@@ -7,8 +7,14 @@ import NC12.LupusInCampus.model.dao.GameDAO;
 import NC12.LupusInCampus.model.dao.LobbyDAO;
 import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.PlayerRole;
+import NC12.LupusInCampus.model.enums.SuccessMessages;
 import NC12.LupusInCampus.service.ListPlayersLobbiesService;
+import NC12.LupusInCampus.service.RequestService;
+import NC12.LupusInCampus.utils.Session;
 import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
+import NC12.LupusInCampus.utils.clientServerComunication.MessagesResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,21 +34,25 @@ public class GameController {
     private final LobbyDAO lobbyDAO;
     private final ListPlayersLobbiesService lobbyLists = new ListPlayersLobbiesService();
     private final GameDAO gameDAO;
+    private final MessagesResponse messagesResponse;
 
     @Autowired
-    public GameController(LobbyDAO lobbyDAO, GameDAO gameDAO) {
+    public GameController(LobbyDAO lobbyDAO, GameDAO gameDAO, MessagesResponse messagesResponse) {
         this.lobbyDAO = lobbyDAO;
         this.gameDAO = gameDAO;
+        this.messagesResponse = messagesResponse;
     }
 
-    @GetMapping("/save-game-state")
-    public ResponseEntity<?> playSave(@RequestParam String codeLobby) {
-        if (!lobbyDAO.existsLobbyByCode(Integer.parseInt(codeLobby))) {
-            new MessageResponse(
-                ErrorMessages.LOBBY_NOT_FOUND.getCode(),
-                ErrorMessages.LOBBY_NOT_FOUND.getMessage()
-            );
-        }
+    @GetMapping("/save-lobby-game-state")
+    public ResponseEntity<?> saveLobbyGameState(@RequestParam String codeLobby, HttpSession session, HttpServletRequest request) {
+
+        String endpoint = RequestService.getEndpoint(request);
+
+        if (!Session.sessionIsActive(session))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
+
+        if (!lobbyDAO.existsLobbyByCode(Integer.parseInt(codeLobby)))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_NOT_FOUND);
 
         // get lobby
         Lobby lobby = lobbyDAO.findLobbyByCode(Integer.parseInt(codeLobby));
@@ -67,7 +77,7 @@ public class GameController {
             gameDAO.saveParticipants(game.getId(), player.getId(), player.getRole());
         }
 
-        return ResponseEntity.ok().body("ok, gestione salvata può iniziare la partita");
+        return messagesResponse.createResponse(endpoint, SuccessMessages.LOBBY_GAME_STATUS_SAVED);
     }
 
     public List<Player> roleAssignment(List<Player> players) {
@@ -104,13 +114,13 @@ public class GameController {
             availableRoles.add(PlayerRole.GRADUATE);
         }
 
-        // Assegna i ruoli casualmente ai giocatori
+        // Randomly assign roles to players
         Collections.shuffle(players);
         for (int i = 0; i < availableRoles.size(); i++) {
             players.get(i).setRole(availableRoles.get(i).getText());
         }
 
-        // I restanti sono contadini
+        // The rest are farmers (student in course)
         for (int i = availableRoles.size(); i < numPlayers; i++) {
             players.get(i).setRole(PlayerRole.STUDENT_IN_COURSE.getText());
         }

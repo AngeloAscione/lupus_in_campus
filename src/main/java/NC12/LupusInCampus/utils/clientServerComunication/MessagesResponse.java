@@ -31,13 +31,13 @@ public class MessagesResponse {
         this.messages.add(message);
     }
 
-    public ResponseEntity<String> createResponse(String from, Object... enumMessages){
+    public ResponseEntity<String> createResponse(String from, Object... messages){
 
         // check if there are errors
         boolean hasError = false;
 
         // add messages
-        for (Object message : enumMessages) {
+        for (Object message : messages) {
             if (message instanceof ErrorMessages) {
                 hasError = true;
             }
