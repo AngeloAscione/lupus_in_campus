@@ -7,10 +7,12 @@ import NC12.LupusInCampus.model.Player;
 import NC12.LupusInCampus.model.dao.DeviceDAO;
 import NC12.LupusInCampus.model.Device;
 import NC12.LupusInCampus.model.enums.ErrorMessages;
+import NC12.LupusInCampus.model.enums.SuccessMessages;
+import NC12.LupusInCampus.service.RequestService;
 import NC12.LupusInCampus.utils.Session;
-import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
+import NC12.LupusInCampus.utils.clientServerComunication.MessagesResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import NC12.LupusInCampus.utils.LoggerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -27,6 +29,7 @@ import java.util.Map;
 @RequestMapping("controller/notification")
 public class NotificationController {
 
+    private final MessagesResponse messagesResponse;
     @Value("${pushy.api.key}")
     private String pushyApiKey;
 
@@ -35,21 +38,17 @@ public class NotificationController {
     private final DeviceDAO deviceDAO;
 
     @Autowired
-    public NotificationController(DeviceDAO deviceDAO) {this.deviceDAO = deviceDAO;}
+    public NotificationController(DeviceDAO deviceDAO, MessagesResponse messagesResponse) {this.deviceDAO = deviceDAO;
+        this.messagesResponse = messagesResponse;
+    }
 
     @PutMapping("/save-token")
-    public ResponseEntity<?> saveToken(@RequestBody SaveTokenRequest saveTokenRequest, HttpSession session) {
-        LoggerUtil.logInfo("-> Ricevuta richiesta save-token");
-        if (!Session.sessionIsActive(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    new MessageResponse(
-                            ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                            ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-                    )
-            );
-        }
+    public ResponseEntity<?> saveToken(@RequestBody SaveTokenRequest saveTokenRequest, HttpSession session, HttpServletRequest request) {
 
-        Player player = (Player) session.getAttribute("player");
+        String endpoint = RequestService.getEndpoint(request);
+
+        if (!Session.sessionIsActive(session))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
         //insert token in DB
         Device device = new Device();
@@ -57,29 +56,23 @@ public class NotificationController {
         device.setPlayerID(saveTokenRequest.getPlayerId());
         deviceDAO.save(device);
 
-        LoggerUtil.logInfo("<- Risposta save-token");
-        return ResponseEntity.ok().body("Token salvato");
+        return messagesResponse.createResponse(endpoint, SuccessMessages.TOKEN_SAVED);
     }
 
     @PostMapping("/send")
-    public ResponseEntity<?> sendNotification(@RequestBody SendNotificationRequest sendNotificationRequest, HttpSession session) {
+    public ResponseEntity<?> sendNotification(@RequestBody SendNotificationRequest sendNotificationRequest, HttpSession session, HttpServletRequest request) {
 
-        LoggerUtil.logInfo("-> Ricevuta richiesta send notification");
+        String endpoint = RequestService.getEndpoint(request);
 
-        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                new MessageResponse(
-                        ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                        ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-                )
-        );
+        if (!Session.sessionIsActive(session))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
         DevicePk devicePk = new DevicePk();
         devicePk.setPlayerID(sendNotificationRequest.getReceiverId());
         List<Device> devices = deviceDAO.findDevicesByDevicePkPlayerID(devicePk.getPlayerID());
 
-        if (devices.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nessun dispositivo trovato per questo utente.");
-        }
+        if (devices.isEmpty())
+            return messagesResponse.createResponse(endpoint, ErrorMessages.DEVICES_NOT_FOUND);
 
         // create payload
         Player p = (Player) session.getAttribute("player");
@@ -91,16 +84,10 @@ public class NotificationController {
         try {
             response = sendHttpToPushy(payload);
         }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                new MessageResponse(
-                        -1,
-                        "Errore nell'invio della notifica, prob. perché non combaciano i token"
-                )
-            );
+            return messagesResponse.createResponse(endpoint, ErrorMessages.ERROR_SEND_NOTIFICATION, e);
         }
 
-        LoggerUtil.logInfo("<- Risposta send notification");
-        return ResponseEntity.ok(response.getBody());
+        return messagesResponse.createResponse(endpoint, SuccessMessages.NOTIFICATION_SENT, response.getBody());
     }
 
     public Map<String, Object> createPayload(List<Device> devices, String message) {

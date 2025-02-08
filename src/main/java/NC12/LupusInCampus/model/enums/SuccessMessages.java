@@ -12,7 +12,7 @@ public enum SuccessMessages {
 
     FRIEND_DELETED(7, "Eliminazione amico riuscita"),
     FRIEND_ADDED(8, "Giocatore aggiunto alla lista amici"),
-    FRIEND_LOADED(9, "Recuperata lista amici"),
+    FRIENDS_LOADED(9, "Recuperata lista amici"),
 
     LOBBIES_LOADED(10, "Lobby pubbliche recuperate"),
     LOBBY_CREATED(11, "Lobby creata con successo"),
@@ -26,7 +26,11 @@ public enum SuccessMessages {
     NOTIFICATION_SENT(17, "Notifica inviata"),
 
     EMAIL_SENT(18, "Email inviata"),
-    PASSWORD_RESET(19, "Password reimpostata correttamente"),;
+    PASSWORD_RESET(19, "Password reimpostata correttamente"),
+
+    TOKEN_SAVED(20, "Token dispositivo salvato"),
+
+    FRIEND_REQUEST_REJECTED(21, "Richiesta di amicizia rifiutata");
 
     private final String message;
     private final int code;

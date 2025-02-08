@@ -7,12 +7,12 @@ import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
 import NC12.LupusInCampus.model.Game;
 import NC12.LupusInCampus.model.Player;
-import NC12.LupusInCampus.utils.LoggerUtil;
-import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
+import NC12.LupusInCampus.service.RequestService;
 import NC12.LupusInCampus.utils.Session;
+import NC12.LupusInCampus.utils.clientServerComunication.MessagesResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,23 +27,24 @@ public class PlayerAreaController {
     private final GameDAO gameDAO;
     private final FriendDAO friendDAO;
     private final PlayerDAO playerDAO;
+    private final MessagesResponse messagesResponse;
 
     @Autowired
-    public PlayerAreaController(GameDAO gameDAO, FriendDAO friendDAO, PlayerDAO playerDAO) {
+    public PlayerAreaController(GameDAO gameDAO, FriendDAO friendDAO, PlayerDAO playerDAO, MessagesResponse messagesResponse) {
         this.gameDAO = gameDAO;
         this.friendDAO = friendDAO;
         this.playerDAO = playerDAO;
+        this.messagesResponse = messagesResponse;
     }
 
-    @GetMapping("")
-    public ResponseEntity<?> getPlayerArea(HttpSession session) {
-        LoggerUtil.logInfo("-> Ricevuta richiesta get Player Area");
-        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new MessageResponse(
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-            )
-        );
+    @GetMapping("/my")
+    public ResponseEntity<?> getPlayerArea(HttpSession session, HttpServletRequest request) {
+
+        String endpoint = RequestService.getEndpoint(request);
+
+        if (!Session.sessionIsActive(session)){
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
+        }
 
         List<Object> allInfo = new ArrayList<>();
 
@@ -59,32 +60,21 @@ public class PlayerAreaController {
         allInfo.add(friendDAO.findPendingFriendRequests(player.getId()));
 
         // return all info
-        LoggerUtil.logInfo("<- Risposta get Player Area");
-        return ResponseEntity.ok().body(new MessageResponse(
-                SuccessMessages.LOAD_ALL_INFO.getCode(),
-                SuccessMessages.LOAD_ALL_INFO.getMessage(),
-                allInfo
-        ));
+        return messagesResponse.createResponse(endpoint, SuccessMessages.LOAD_ALL_INFO, allInfo);
     }
 
     @PostMapping("/edit-player-data")
-    public ResponseEntity<?> editPlayerData(HttpSession session, @RequestBody Map<String, String> param) {
-        LoggerUtil.logInfo("-> Ricevuta richiesta edit Player data");
-        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new MessageResponse(
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-            )
-        );
+    public ResponseEntity<?> editPlayerData(HttpSession session, @RequestBody Map<String, String> param, HttpServletRequest request) {
+        String endpoint = RequestService.getEndpoint(request);
+
+        if (!Session.sessionIsActive(session))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
         String newNickname = param.get("newNickname");
 
-        if (playerDAO.findPlayerByNickname(newNickname) != null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new MessageResponse(
-                    ErrorMessages.NICKNAME_ALREADY_USED.getCode(),
-                    ErrorMessages.NICKNAME_ALREADY_USED.getMessage()
-            )
-        );
+        if (playerDAO.findPlayerByNickname(newNickname) != null){
+            return messagesResponse.createResponse(endpoint, ErrorMessages.NICKNAME_ALREADY_USED);
+        }
 
         Player player = (Player) session.getAttribute("player");
         player.setNickname(newNickname);
@@ -93,14 +83,7 @@ public class PlayerAreaController {
         player.setNickname(newNickname);
         session.setAttribute("player", player);
 
-        LoggerUtil.logInfo("<- Rispsota richiesta edit Player data");
-        return ResponseEntity.ok().body(
-            new MessageResponse(
-                    SuccessMessages.SUCCESS_EDIT.getCode(),
-                    SuccessMessages.SUCCESS_EDIT.getMessage(),
-                    player
-            )
-        );
+        return messagesResponse.createResponse(endpoint, SuccessMessages.SUCCESS_EDIT, player);
     }
 
 

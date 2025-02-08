@@ -8,14 +8,15 @@ import NC12.LupusInCampus.model.dao.PlayerDAO;
 import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
 import NC12.LupusInCampus.model.Player;
+import NC12.LupusInCampus.service.RequestService;
 import NC12.LupusInCampus.utils.LoggerUtil;
-import NC12.LupusInCampus.utils.clientServerComunication.MessageResponse;
 import NC12.LupusInCampus.utils.Session;
 import NC12.LupusInCampus.model.dao.FriendRequestDAO;
+import NC12.LupusInCampus.utils.clientServerComunication.MessagesResponse;
 import NC12.LupusInCampus.utils.clientServerComunication.NotificationCaller;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,51 +33,39 @@ public class FriendController {
     private final FriendDAO friendDAO;
     private final FriendRequestDAO friendRequestDAO;
     private final NotificationCaller notificationCaller;
+    private final MessagesResponse messagesResponse;
 
 
     @Autowired
-    public FriendController(PlayerDAO playerDAO, FriendDAO friendDAO, FriendRequestDAO friendRequestDAO, NotificationCaller notificationCaller) {
+    public FriendController(PlayerDAO playerDAO, FriendDAO friendDAO, FriendRequestDAO friendRequestDAO, NotificationCaller notificationCaller, MessagesResponse messagesResponse) {
         this.playerDAO = playerDAO;
         this.friendDAO = friendDAO;
         this.friendRequestDAO = friendRequestDAO;
         this.notificationCaller = notificationCaller;
+        this.messagesResponse = messagesResponse;
     }
 
-    @GetMapping("")
-    public ResponseEntity<?> getFriends(HttpSession session) {
-        LoggerUtil.logInfo("-> Ricevuta richiesta di get all friends");
-        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new MessageResponse(
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-            )
-        );
+    @GetMapping("/get-friends-list")
+    public ResponseEntity<?> getFriends(HttpSession session, HttpServletRequest request) {
+
+        String endpoint = RequestService.getEndpoint(request);
+        if (!Session.sessionIsActive(session))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
         Player player = (Player) session.getAttribute("player");
         player.setFriendsList(friendDAO.findFriendsByPlayerId(player.getId()));
         session.setAttribute("player", player);
 
-        MessageResponse response = new MessageResponse(
-            SuccessMessages.FRIEND_LOADED.getCode(),
-            SuccessMessages.FRIEND_LOADED.getMessage(),
-            player.getFriendsList()
-        );
-
-        LoggerUtil.logInfo("<- Risposta get all friends: " + response);
-        return ResponseEntity.ok().body(response);
-
+        return messagesResponse.createResponse(endpoint, SuccessMessages.FRIENDS_LOADED, player.getFriendsList());
     }
 
     @DeleteMapping("/remove-friend")
-    public ResponseEntity<?> removeFriend(@RequestParam String id, HttpSession session) {
+    public ResponseEntity<?> removeFriend(@RequestParam String id, HttpSession session, HttpServletRequest request) {
 
-        LoggerUtil.logInfo("-> Ricevuta richiesta di remove friend");
-        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new MessageResponse(
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-            )
-        );
+        String endpoint = RequestService.getEndpoint(request);
+
+        if (!Session.sessionIsActive(session))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
         Player player = (Player) session.getAttribute("player");
         player.setFriendsList(friendDAO.findFriendsByPlayerId(player.getId()));
@@ -85,38 +74,24 @@ public class FriendController {
         int idToRemove = Integer.parseInt(id);
         Player friendToRemove = playerDAO.findPlayerById(idToRemove);
 
-        if (!friends.contains(friendToRemove)) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-            new MessageResponse(
-                    ErrorMessages.FRIEND_NOT_DELETED.getCode(),
-                    ErrorMessages.FRIEND_NOT_DELETED.getMessage()
-            )
-        );
+        if (!friends.contains(friendToRemove))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.FRIEND_NOT_DELETED);
 
         friendDAO.removeFriendById(player.getId(), friendToRemove.getId());
+        friendDAO.removeFriendById(friendToRemove.getId(), player.getId());
+        friends.remove(friendToRemove);
 
-        MessageResponse response = new MessageResponse(
-                SuccessMessages.FRIEND_DELETED.getCode(),
-                SuccessMessages.FRIEND_DELETED.getMessage()
-        );
-
-        LoggerUtil.logInfo("<- Risposta remove friend: " + response);
-        return ResponseEntity.ok().body(response);
-
+        return messagesResponse.createResponse(endpoint, SuccessMessages.FRIEND_DELETED, friends);
     }
 
 
     @PostMapping("/send-friend-request")
-    public ResponseEntity<?> sendFriendRequest(@RequestBody Map<String, String> params, HttpSession session) {
-        LoggerUtil.logInfo("-> Ricevuta richiesta di send friend request");
+    public ResponseEntity<?> sendFriendRequest(@RequestBody Map<String, String> params, HttpSession session, HttpServletRequest request) {
+        String endpoint = RequestService.getEndpoint(request);
         LoggerUtil.logInfo(params.get("friendId"));
-        if (!Session.sessionIsActive(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    new MessageResponse(
-                            ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                            ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-                    )
-            );
-        }
+
+        if (!Session.sessionIsActive(session))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
         Player player = (Player) session.getAttribute("player");
 
@@ -128,83 +103,57 @@ public class FriendController {
 
     }
 
-    @PutMapping("/add-friend")
-    public ResponseEntity<?> addFriend(@RequestBody AddFriendRequest addFriendRequest) {
-        LoggerUtil.logInfo("-> Ricevuta richiesta di add friend");
+    @PutMapping("/friend-request-result")
+    public ResponseEntity<?> friendRequestResult(@RequestBody AddFriendRequest addFriendRequest, HttpServletRequest request) {
+        String endpoint = RequestService.getEndpoint(request);
         LoggerUtil.logInfo(addFriendRequest.toString());
+
         FriendRequestPk friendRequestPk = new FriendRequestPk();
         friendRequestPk.setReceiverId(Integer.parseInt(addFriendRequest.getMyId()));
         friendRequestPk.setSenderId(Integer.parseInt(addFriendRequest.getFriendId()));
         FriendRequest friendRequest = friendRequestDAO.findByFriendRequestPk(friendRequestPk);
-        LoggerUtil.logInfo("<- Risposta add friend: " + friendRequest);
+
         return switch (addFriendRequest.getOperation()) {
-            case "accepted" -> requestAccepted(friendRequest);
-            case "rejected" -> requestRejected(friendRequest);
-            default -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("operazione non corretta");
+            case "accepted" -> requestAccepted(friendRequest, endpoint);
+            case "rejected" -> requestRejected(friendRequest, endpoint);
+            default -> messagesResponse.createResponse(endpoint, ErrorMessages.INCORRECT_OPERATION);
         };
 
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> search(@RequestParam String query, HttpSession session) {
-        LoggerUtil.logInfo("-> Ricevuta richiesta di search");
-        if (!Session.sessionIsActive(session)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new MessageResponse(
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getCode(),
-                    ErrorMessages.PLAYER_NOT_IN_SESSION.getMessage()
-            )
-        );
+    public ResponseEntity<?> search(@RequestParam String query, HttpSession session, HttpServletRequest request) {
+        String endpoint = RequestService.getEndpoint(request);
+
+        if (!Session.sessionIsActive(session))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
         List<Player> players = playerDAO.findPlayersByNicknameContainingIgnoreCase(query);
 
-        LoggerUtil.logInfo("<- Risposta search: " + players);
-        return ResponseEntity.ok().body(
-            new MessageResponse(
-                    SuccessMessages.SEARCH.getCode(),
-                    SuccessMessages.SEARCH.getMessage(),
-                    players
-            )
-        );
-
+        return messagesResponse.createResponse(endpoint, SuccessMessages.SEARCH, players);
     }
 
-    public ResponseEntity<?> requestAccepted(FriendRequest friendRequest){
+    public ResponseEntity<?> requestAccepted(FriendRequest friendRequest, String endpoint){
 
         LoggerUtil.logInfo("Richiesta di amicizia accettata");
         int senderId = friendRequest.getSenderId();
         int receiverId = friendRequest.getReceiverId();
 
-        if (!friendRequestDAO.existsFriendRequestByFriendRequestPk(friendRequest.getFriendRequestPk())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                new MessageResponse(
-                        -1,
-                        "Richiesta di amicizia non trovata"
-                )
-            );
-        }
+        if (!friendRequestDAO.existsFriendRequestByFriendRequestPk(friendRequest.getFriendRequestPk()))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.FRIEND_REQUEST_NOT_FOUND);
 
         friendDAO.addFriend(senderId, receiverId);
         friendDAO.addFriend(receiverId, senderId);
 
-        MessageResponse response = new MessageResponse(
-                SuccessMessages.FRIEND_ADDED.getCode(),
-                SuccessMessages.FRIEND_ADDED.getMessage()
-        );
-
-        return ResponseEntity.ok().body(response);
+        return messagesResponse.createResponse(endpoint, SuccessMessages.FRIEND_ADDED);
     }
 
-    public ResponseEntity<?> requestRejected(FriendRequest friendRequest){
+    public ResponseEntity<?> requestRejected(FriendRequest friendRequest, String endpoint){
 
         LoggerUtil.logInfo("Richiesta di amicizia rifiutata");
         friendRequestDAO.delete(friendRequest);
 
-        return ResponseEntity.ok().body(
-            new MessageResponse(
-                    0,
-                    "Richiesta di amicizia rifiutata"
-            )
-        );
+        return messagesResponse.createResponse(endpoint, SuccessMessages.FRIEND_REQUEST_REJECTED);
     }
 
     public void saveFriendRequest(Player player, String idFriend){

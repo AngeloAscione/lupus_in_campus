@@ -19,15 +19,20 @@ public enum ErrorMessages {
     PLAYER_NOT_IN_SESSION(-11, "Giocatore nella sessione non trovato"),
 
     FRIEND_ALREADY_ADDED(-12, "Giocatore già presente nella lista amici"),
-
     FRIEND_NOT_DELETED(-13, "Eliminazione amico non riuscita"),
+    FRIEND_REQUEST_NOT_FOUND(-21, "Richiesta di amicizia non trovata"),
 
     PUBLIC_LOBBIES_NOT_FOUND(-14, "Lobby pubbliche attive non presenti"),
     LOBBY_NOT_FOUND(-15, "Lobby non trovata"),
     LIMIT_PLAYER_LOBBY(-16, "Lobby piena"),
     PLAYER_ALREADY_JOIN(-17, "Giocatore già presente nella lobby"),
 
-    RESET_PASSWORD_ERROR(-18, "Qualcosa è andato storto con il reset della password");
+    RESET_PASSWORD_ERROR(-18, "Qualcosa è andato storto con il reset della password"),
+
+    DEVICES_NOT_FOUND(-19, "Nessun dispositivo trovato"),
+    ERROR_SEND_NOTIFICATION(-20, "Errore nell'invio della notifica"),
+
+    INCORRECT_OPERATION(-21, "Operazione non corretta");
 
     private final String message;
     private final int code;
