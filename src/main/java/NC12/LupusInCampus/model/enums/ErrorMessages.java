@@ -20,7 +20,9 @@ public enum ErrorMessages {
 
     FRIEND_ALREADY_ADDED(-12, "Giocatore già presente nella lista amici"),
     FRIEND_NOT_DELETED(-13, "Eliminazione amico non riuscita"),
-    FRIEND_REQUEST_NOT_FOUND(-21, "Richiesta di amicizia non trovata"),
+    FRIEND_REQUEST_NOT_FOUND(-22, "Richiesta di amicizia non trovata"),
+    FRIEND_REQUEST_ALREADY_SENT(-23, "Richiesta di amicizia già inviata"),
+    UNAUTHORIZED_OPERATION(-24, "Operazione alla richiesta di amicizia non possibile da parte del giocatore"),
 
     PUBLIC_LOBBIES_NOT_FOUND(-14, "Lobby pubbliche attive non presenti"),
     LOBBY_NOT_FOUND(-15, "Lobby non trovata"),

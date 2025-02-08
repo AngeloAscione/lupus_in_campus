@@ -1,22 +1,22 @@
 package NC12.LupusInCampus.dto.friend;
 
 public class AddFriendRequest {
-    private String myId;
-    private String friendId;
+    private String senderId;
+    private String receiverId;
     private String operation;
 
-    public AddFriendRequest(String myId, String friendId, String operation) {
-        this.myId = myId;
-        this.friendId = friendId;
+    public AddFriendRequest(String senderId, String receiverId, String operation) {
+        this.senderId = senderId;
+        this.receiverId = receiverId;
         this.operation = operation;
     }
 
-    public String getMyId() {
-        return myId;
+    public String getSenderId() {
+        return senderId;
     }
 
-    public String getFriendId() {
-        return friendId;
+    public String getReceiverId() {
+        return receiverId;
     }
 
     public String getOperation() {
@@ -26,8 +26,8 @@ public class AddFriendRequest {
     @Override
     public String toString() {
         return "AddFriendRequest{" +
-                "myId='" + myId + '\'' +
-                ", friendId='" + friendId + '\'' +
+                "senderId='" + senderId + '\'' +
+                ", receiverId='" + receiverId + '\'' +
                 ", operation='" + operation + '\'' +
                 '}';
     }
