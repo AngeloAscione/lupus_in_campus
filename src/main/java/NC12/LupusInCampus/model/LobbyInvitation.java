@@ -14,7 +14,9 @@ public class LobbyInvitation {
     @Column(name = "dataInvito")
     private LocalDateTime dataInvitation;
 
-    public LobbyInvitation() {}
+    public LobbyInvitation() {
+        this.lobbyInvitationPk = new LobbyInvitationPk();
+    }
 
     public void setDataInvitation(LocalDateTime dataInvitation) {
         this.dataInvitation = dataInvitation;
@@ -50,10 +52,10 @@ public class LobbyInvitation {
 
     @Override
     public String toString() {
-        return "LobbyInvitation{" +
-                "sendingPlayerId=" + this.lobbyInvitationPk.getSendingPlayerId() +
-                ", invitedPlayerId=" + this.lobbyInvitationPk.getInvitedPlayerId() +
-                ", dataInvitation=" + dataInvitation +
-                '}';
+        return "{\"LobbyInvitation\":{" +
+                "\"sendingPlayerId\":" + this.lobbyInvitationPk.getSendingPlayerId() +
+                ", \"invitedPlayerId\":" + this.lobbyInvitationPk.getInvitedPlayerId() +
+                ", \"dataInvitation\":\""  + this.dataInvitation + '\"' +
+                "}}";
     }
 }

@@ -100,15 +100,15 @@ public class Lobby {
 
     @Override
     public String toString() {
-        return "Lobby{" +
-                "code=" + code +
-                ", creatorID=" + creatorID +
-                ", creationDate=" + creationDate +
-                ", minNumPlayer=" + minNumPlayer +
-                ", numPlayer=" + numPlayer +
-                ", maxNumPlayer=" + maxNumPlayer +
-                ", type='" + type + '\'' +
-                ", state='" + state + '\'' +
-                '}';
+        return "{\"lobby\":{" +
+                "\"code\":" + code +
+                ", \"creatorID\":" + creatorID +
+                ", \"creationDate\":\"" + creationDate + '\"' +
+                ", \"minNumPlayer\":" + minNumPlayer +
+                ", \"numPlayer\":" + numPlayer +
+                ", \"maxNumPlayer\":" + maxNumPlayer +
+                ", \"type\":\"" + type + '\"' +
+                ", \"state\":\"" + state + '\"' +
+                "}}";
     }
 }

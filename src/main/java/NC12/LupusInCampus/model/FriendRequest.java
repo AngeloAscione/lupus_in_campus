@@ -9,12 +9,14 @@ import java.time.LocalDateTime;
 public class FriendRequest {
 
     @EmbeddedId
-    private FriendRequestPk friendRequestPk = new FriendRequestPk();
+    private FriendRequestPk friendRequestPk;
 
     @Column(name = "dataRichiesta")
     private LocalDateTime requestDate;
 
-    public FriendRequest() {}
+    public FriendRequest() {
+        this.friendRequestPk = new FriendRequestPk();
+    }
 
     public void setSenderId(int senderId) {
         this.friendRequestPk.setSenderId(senderId);
