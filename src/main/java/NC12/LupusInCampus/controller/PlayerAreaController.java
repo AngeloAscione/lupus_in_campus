@@ -37,6 +37,34 @@ public class PlayerAreaController {
         this.messagesResponse = messagesResponse;
     }
 
+    private class GamePartecipated {
+        List<Game> games;
+
+        @Override
+        public String toString() {
+            return "{\"GamePartecipated\":" + games +
+                    "}";
+        }
+
+        GamePartecipated(List<Game> games) {
+            this.games = games;
+        }
+    }
+
+    private class PendingFriendRequest {
+        List<Player> pendigFriendRequests;
+
+        @Override
+        public String toString() {
+            return "{\"PendingFriendRequest\":" + pendigFriendRequests +
+                    "}";
+        }
+
+        public PendingFriendRequest(List<Player> pendigFriendRequests) {
+            this.pendigFriendRequests = pendigFriendRequests;
+        }
+    }
+
     @GetMapping("/my")
     public ResponseEntity<?> getPlayerArea(HttpSession session, HttpServletRequest request) {
 
@@ -54,10 +82,11 @@ public class PlayerAreaController {
 
         // all the games he has participated in
         List<Game> listGamesParticipated = getInfoGamesPartecipated(player);
-        allInfo.add(listGamesParticipated);
+        allInfo.add(new GamePartecipated(listGamesParticipated));
 
         // pending friend requests he has
-        allInfo.add(friendDAO.findPendingFriendRequests(player.getId()));
+        allInfo.add(new PendingFriendRequest(friendDAO.findPendingFriendRequests(player.getId())));
+
 
         // return all info
         return messagesResponse.createResponse(endpoint, SuccessMessages.LOAD_ALL_INFO, allInfo);
