@@ -71,10 +71,10 @@ public class Game {
     @Override
     public String toString() {
         return "{\"Game\":{" +
-                "\"id\":" + id + '"' +
-                ", \"creatorId\":\"" + creatorId +  '"' +
-                ", \"gameDate\":\"" + gameDate + '"' +
-                ", \"winningPlayerId\":\"" + winningPlayerId + '"' +
+                "\"id\":" + id +
+                ", \"creatorId\":" + creatorId +
+                ", \"gameDate\":\"" + gameDate + '\"' +
+                ", \"winningPlayerId\":" + winningPlayerId +
                 ", \"participants\":" + participants +
                 "}}";
     }

@@ -10,6 +10,7 @@ import NC12.LupusInCampus.model.enums.PlayerRole;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
 import NC12.LupusInCampus.service.ListPlayersLobbiesService;
 import NC12.LupusInCampus.service.RequestService;
+import NC12.LupusInCampus.utils.LoggerUtil;
 import NC12.LupusInCampus.utils.Session;
 import NC12.LupusInCampus.utils.clientServerComunication.MessagesResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -82,9 +83,11 @@ public class GameController {
     public List<Player> roleAssignment(List<Player> players) {
 
         int numPlayers = players.size();
+        LoggerUtil.logInfo(" -> Numero giocatori "+numPlayers);
         List<PlayerRole> availableRoles = new ArrayList<>();
 
         if (isBetween(numPlayers, 6, 8)) {
+            LoggerUtil.logInfo(" -> primo range");
 
             availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
             availableRoles.add(PlayerRole.RECTOR);
@@ -92,6 +95,7 @@ public class GameController {
             availableRoles.add(PlayerRole.GRADUATE);
 
         }else if (isBetween(numPlayers, 9, 12)) {
+            LoggerUtil.logInfo(" -> secondo range");
 
             availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
             availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
@@ -104,6 +108,8 @@ public class GameController {
             }
 
         }else if (isBetween(numPlayers, 13, 18)) {
+            LoggerUtil.logInfo(" -> terzo range");
+
             availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
             availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
             availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
@@ -112,6 +118,8 @@ public class GameController {
             availableRoles.add(PlayerRole.GRADUATE);
             availableRoles.add(PlayerRole.GRADUATE);
         }
+
+        LoggerUtil.logInfo(" -> Ruoli possibili: "+availableRoles);
 
         // Randomly assign roles to players
         Collections.shuffle(players);
@@ -124,10 +132,11 @@ public class GameController {
             players.get(i).setRole(PlayerRole.STUDENT_IN_COURSE.getText());
         }
 
+        LoggerUtil.logInfo(" -> Lista player con ruoli: "+players);
         return players;
     }
 
-    public static boolean isBetween(int x, int min, int max){
-        return x >= min && x <= max;
+    public static boolean isBetween(int x, int minIncluded, int maxIncluded){
+        return x >= minIncluded && x <= maxIncluded;
     }
 }
