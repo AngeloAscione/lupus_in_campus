@@ -103,10 +103,10 @@ public class PlayerController {
 
         //in session
         session.invalidate();
-        return messagesResponse.createResponse(endpoint, SuccessMessages.LOGOUT_SUCCESS);
+        return messagesResponse.createResponse(endpoint, SuccessMessages.LOGOUT_SUCCESS, new Player());
     }
 
-    @DeleteMapping("/delete")
+    @PostMapping("/delete")
     public ResponseEntity<?> deletePlayer(@RequestBody Map<String, Integer> params, HttpSession session, HttpServletRequest request) {
 
         String endpoint = RequestService.getEndpoint(request);
@@ -116,7 +116,7 @@ public class PlayerController {
         }
 
         Player player = (Player) session.getAttribute("player");
-        int id = params.get("playerId");
+        int id = params.get("id");
 
         if (id == 0) {
             return messagesResponse.createResponse(endpoint, ErrorMessages.EMPTY_ID);
@@ -128,7 +128,7 @@ public class PlayerController {
 
         // SUCCESS
         playerDAO.delete(player);
-        return messagesResponse.createResponse(endpoint, SuccessMessages.PLAYER_DELETED);
+        return messagesResponse.createResponse(endpoint, SuccessMessages.PLAYER_DELETED, new Player());
     }
 
 
@@ -147,9 +147,14 @@ public class PlayerController {
             return messagesResponse.createResponse(endpoint, ErrorMessages.EMAIL_FORMAT);
         }
 
+        Player player = playerDAO.findPlayerByEmail(email);
+        if (player == null) {
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_FOUND);
+        }
+
         String username = "";
         try {
-            username = playerDAO.findPlayerByEmail(email).getNickname();
+            username = player.getNickname();
         } catch (NullPointerException e) {
             return messagesResponse.createResponse(endpoint, ErrorMessages.EMAIL_NOT_REGISTERED);
         }
@@ -173,7 +178,7 @@ public class PlayerController {
 
         Email.getInstance().sendEmail(email, "Recupera Password", body);
 
-        return messagesResponse.createResponse(endpoint, SuccessMessages.EMAIL_SENT);
+        return messagesResponse.createResponse(endpoint, SuccessMessages.EMAIL_SENT, new Player());
     }
 
 

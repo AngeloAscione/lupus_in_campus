@@ -61,8 +61,7 @@ public class PasswordResetService {
 
         Player player = resetToken.getPlayer();
 
-        String hashPass = BCrypt.hashpw(newPassword, BCrypt.gensalt());
-        player.setPassword(hashPass);
+        player.setPassword(newPassword);
 
         playerDAO.save(player);
 
