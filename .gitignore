@@ -34,3 +34,4 @@ build/
 
 /src/main/resources/application.properties
 /src/main/resources/mail-config.json
+/src/main/resources/app-config.json
