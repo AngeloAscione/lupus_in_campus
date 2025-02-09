@@ -9,4 +9,6 @@ import java.util.List;
 public interface LobbyInvitationDAO extends JpaRepository<LobbyInvitation, LobbyInvitationPk> {
 
     List<LobbyInvitation> findLobbyInvitationsByLobbyInvitationPkInvitedPlayerId(int invitedPlayerId);
+
+    LobbyInvitation findLobbyInvitationByLobbyInvitationPk(LobbyInvitationPk lobbyInvitationPk);
 }

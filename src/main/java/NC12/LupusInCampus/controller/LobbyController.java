@@ -3,6 +3,7 @@ package NC12.LupusInCampus.controller;
 import NC12.LupusInCampus.dto.lobby.CreateLobbyRequest;
 import NC12.LupusInCampus.dto.lobby.InviteFriendToLobbyRequest;
 import NC12.LupusInCampus.dto.lobby.ModifyLobbyRequest;
+import NC12.LupusInCampus.model.LobbyInvitationPk;
 import NC12.LupusInCampus.model.dao.LobbyDAO;
 import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
@@ -140,6 +141,8 @@ public class LobbyController {
         if (lobbyLists.containsPlayer(code, player))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_ALREADY_JOIN);
 
+        checkIfExistsLobbyInvitation(lobby, player);
+
         lobbyLists.addPlayer(player, code);
         lobby.setNumPlayer(lobbyLists.getListPlayers(code).size());
 
@@ -228,4 +231,16 @@ public class LobbyController {
         return lobbyCode;
     }
 
+    public void checkIfExistsLobbyInvitation(Lobby lobbyToJoin, Player playerInSession){
+        LobbyInvitationPk lobbyInvitationPk = new LobbyInvitationPk();
+        lobbyInvitationPk.setSendingPlayerId(lobbyToJoin.getCreatorID());
+        lobbyInvitationPk.setInvitedPlayerId(playerInSession.getId());
+
+        LobbyInvitation invitation =
+                lobbyInvitationDAO.findLobbyInvitationByLobbyInvitationPk(lobbyInvitationPk);
+
+        if (invitation != null){
+            lobbyInvitationDAO.delete(invitation);
+        }
+    }
 }
