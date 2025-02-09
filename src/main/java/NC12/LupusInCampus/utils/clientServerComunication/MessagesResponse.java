@@ -48,7 +48,7 @@ public class MessagesResponse {
         if (hasError)
             LoggerUtil.logError("<- Risposta alla richiesta " +from, new Exception(this.toString()));
         else
-            LoggerUtil.logInfo("<- Risposta alla richiesta " + from + ":\n" + this);
+            LoggerUtil.logInfo("<- Risposta alla richiesta " + from + ":\n" + this.toString());
 
         //return response
         return ResponseEntity.status(HttpStatus.OK).body(this.toString());

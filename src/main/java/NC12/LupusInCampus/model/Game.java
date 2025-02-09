@@ -66,4 +66,16 @@ public class Game {
     public void setParticipants(List<Player> participants) {
         this.participants = participants;
     }
+
+
+    @Override
+    public String toString() {
+        return "{\"Game\":{" +
+                "\"id\":" + id + '"' +
+                ", \"creatorId\":\"" + creatorId +  '"' +
+                ", \"gameDate\":\"" + gameDate + '"' +
+                ", \"winningPlayerId\":\"" + winningPlayerId + '"' +
+                ", \"participants\":" + participants +
+                "}}";
+    }
 }
