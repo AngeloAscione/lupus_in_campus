@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.dto.notification;
+package NC12.LupusInCampus.model.dto.notification;
 
 public class SendNotificationRequest {
 

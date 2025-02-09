@@ -1,7 +1,7 @@
 package NC12.LupusInCampus.controller;
 
-import NC12.LupusInCampus.dto.notification.SaveTokenRequest;
-import NC12.LupusInCampus.dto.notification.SendNotificationRequest;
+import NC12.LupusInCampus.model.dto.notification.SaveTokenRequest;
+import NC12.LupusInCampus.model.dto.notification.SendNotificationRequest;
 import NC12.LupusInCampus.model.DevicePk;
 import NC12.LupusInCampus.model.Player;
 import NC12.LupusInCampus.model.dao.DeviceDAO;

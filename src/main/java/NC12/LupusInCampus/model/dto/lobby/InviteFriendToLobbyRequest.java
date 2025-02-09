@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.dto.lobby;
+package NC12.LupusInCampus.model.dto.lobby;
 
 public class InviteFriendToLobbyRequest {
 

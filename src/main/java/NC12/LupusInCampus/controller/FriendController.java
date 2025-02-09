@@ -1,6 +1,6 @@
 package NC12.LupusInCampus.controller;
 
-import NC12.LupusInCampus.dto.friend.AddFriendRequest;
+import NC12.LupusInCampus.model.dto.friend.AddFriendRequest;
 import NC12.LupusInCampus.model.FriendRequest;
 import NC12.LupusInCampus.model.FriendRequestPk;
 import NC12.LupusInCampus.model.dao.FriendDAO;

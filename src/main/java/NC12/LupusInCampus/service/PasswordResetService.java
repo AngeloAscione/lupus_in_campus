@@ -6,7 +6,6 @@ import NC12.LupusInCampus.model.dao.PasswordResetTokenDAO;
 import NC12.LupusInCampus.model.dao.PlayerDAO;
 import NC12.LupusInCampus.utils.JsonConfigReader;
 import lombok.RequiredArgsConstructor;
-import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;

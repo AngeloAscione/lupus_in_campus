@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.dto.player;
+package NC12.LupusInCampus.model.dto.player;
 
 public class ResetPasswordRequest {
     private String token;

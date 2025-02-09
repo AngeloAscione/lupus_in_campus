@@ -1,8 +1,8 @@
 package NC12.LupusInCampus.controller;
 
-import NC12.LupusInCampus.dto.lobby.CreateLobbyRequest;
-import NC12.LupusInCampus.dto.lobby.InviteFriendToLobbyRequest;
-import NC12.LupusInCampus.dto.lobby.ModifyLobbyRequest;
+import NC12.LupusInCampus.model.dto.lobby.CreateLobbyRequest;
+import NC12.LupusInCampus.model.dto.lobby.InviteFriendToLobbyRequest;
+import NC12.LupusInCampus.model.dto.lobby.ModifyLobbyRequest;
 import NC12.LupusInCampus.model.LobbyInvitationPk;
 import NC12.LupusInCampus.model.dao.LobbyDAO;
 import NC12.LupusInCampus.model.enums.ErrorMessages;

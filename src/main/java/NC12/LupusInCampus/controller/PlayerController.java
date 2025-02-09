@@ -1,7 +1,7 @@
 package NC12.LupusInCampus.controller;
 
-import NC12.LupusInCampus.dto.player.LoginRequest;
-import NC12.LupusInCampus.dto.player.RegistrationRequest;
+import NC12.LupusInCampus.model.dto.player.LoginRequest;
+import NC12.LupusInCampus.model.dto.player.RegistrationRequest;
 import NC12.LupusInCampus.model.dao.PlayerDAO;
 import NC12.LupusInCampus.model.Player;
 import NC12.LupusInCampus.service.PasswordResetService;

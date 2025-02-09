@@ -1,4 +1,4 @@
-package NC12.LupusInCampus.dto.friend;
+package NC12.LupusInCampus.model.dto.friend;
 
 public class AddFriendRequest {
     private String senderId;
