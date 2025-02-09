@@ -7,9 +7,11 @@ import jakarta.persistence.*;
 public class Device {
 
     @EmbeddedId
-    private DevicePk devicePk = new DevicePk();
+    private DevicePk devicePk;
 
-    public Device() {}
+    public Device() {
+        this.devicePk = new DevicePk();
+    }
 
     public DevicePk getDevicePk() {
         return devicePk;

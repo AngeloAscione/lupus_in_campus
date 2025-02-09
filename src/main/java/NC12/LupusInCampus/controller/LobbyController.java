@@ -137,13 +137,13 @@ public class LobbyController {
             return messagesResponse.createResponse(endpoint, ErrorMessages.LIMIT_PLAYER_LOBBY);
 
         Player player = (Player) session.getAttribute("player");
-        if (lobbyLists.getListPlayers(code).contains(player))
+        if (lobbyLists.containsPlayer(code, player))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_ALREADY_JOIN);
 
         lobbyLists.addPlayer(player, code);
         lobby.setNumPlayer(lobbyLists.getListPlayers(code).size());
 
-        return messagesResponse.createResponse(endpoint, SuccessMessages.PLAYER_ADDED_LOBBY, lobby);
+        return messagesResponse.createResponse(endpoint, SuccessMessages.PLAYER_ADDED_LOBBY, lobbyLists.getListPlayers(code));
     }
 
     @PostMapping("/modify-lobby")

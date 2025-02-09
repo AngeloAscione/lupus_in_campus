@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -93,7 +94,17 @@ public class FriendController {
         if (!Session.sessionIsActive(session))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
+        if (playerDAO.findPlayerById(Integer.parseInt(params.get("friendId"))) == null)
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_FOUND);
+
         Player player = (Player) session.getAttribute("player");
+
+        FriendRequestPk friendRequestPk = new FriendRequestPk();
+        friendRequestPk.setSenderId(player.getId());
+        friendRequestPk.setReceiverId(Integer.parseInt(params.get("friendId")));
+
+        if (friendRequestDAO.existsFriendRequestByFriendRequestPk(friendRequestPk))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.FRIEND_REQUEST_ALREADY_SENT);
 
         saveFriendRequest(player, params.get("friendId"));
 
@@ -104,21 +115,33 @@ public class FriendController {
     }
 
     @PutMapping("/friend-request-result")
-    public ResponseEntity<?> friendRequestResult(@RequestBody AddFriendRequest addFriendRequest, HttpServletRequest request) {
+    public ResponseEntity<?> friendRequestResult(@RequestBody AddFriendRequest addFriendRequest, HttpSession session, HttpServletRequest request) {
         String endpoint = RequestService.getEndpoint(request);
         LoggerUtil.logInfo(addFriendRequest.toString());
 
+        if (!Session.sessionIsActive(session))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
+
+        Player player = (Player) session.getAttribute("player");
+
         FriendRequestPk friendRequestPk = new FriendRequestPk();
-        friendRequestPk.setReceiverId(Integer.parseInt(addFriendRequest.getMyId()));
-        friendRequestPk.setSenderId(Integer.parseInt(addFriendRequest.getFriendId()));
+        friendRequestPk.setSenderId(Integer.parseInt(addFriendRequest.getSenderId()));
+        friendRequestPk.setReceiverId(Integer.parseInt(addFriendRequest.getReceiverId()));
+
+        if (!friendRequestDAO.existsFriendRequestByFriendRequestPk(friendRequestPk))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.FRIEND_REQUEST_NOT_FOUND);
+
         FriendRequest friendRequest = friendRequestDAO.findByFriendRequestPk(friendRequestPk);
+
+        //the friend request does not belong to him
+        if (friendRequest.getReceiverId() != player.getId())
+            return messagesResponse.createResponse(endpoint, ErrorMessages.UNAUTHORIZED_OPERATION);
 
         return switch (addFriendRequest.getOperation()) {
             case "accepted" -> requestAccepted(friendRequest, endpoint);
             case "rejected" -> requestRejected(friendRequest, endpoint);
             default -> messagesResponse.createResponse(endpoint, ErrorMessages.INCORRECT_OPERATION);
         };
-
     }
 
     @GetMapping("/search")
@@ -130,6 +153,8 @@ public class FriendController {
 
         List<Player> players = playerDAO.findPlayersByNicknameContainingIgnoreCase(query);
 
+        players.sort(Comparator.comparing(Player::getNickname, String.CASE_INSENSITIVE_ORDER));
+
         return messagesResponse.createResponse(endpoint, SuccessMessages.SEARCH, players);
     }
 
@@ -139,11 +164,19 @@ public class FriendController {
         int senderId = friendRequest.getSenderId();
         int receiverId = friendRequest.getReceiverId();
 
-        if (!friendRequestDAO.existsFriendRequestByFriendRequestPk(friendRequest.getFriendRequestPk()))
-            return messagesResponse.createResponse(endpoint, ErrorMessages.FRIEND_REQUEST_NOT_FOUND);
-
         friendDAO.addFriend(senderId, receiverId);
         friendDAO.addFriend(receiverId, senderId);
+
+        friendRequestDAO.delete(friendRequest);
+
+        FriendRequestPk revertFriendRequestPk = new FriendRequestPk();
+        revertFriendRequestPk.setSenderId(receiverId);
+        revertFriendRequestPk.setReceiverId(senderId);
+
+        if (friendRequestDAO.existsFriendRequestByFriendRequestPk(revertFriendRequestPk)){
+            FriendRequest revertFriendRequest = friendRequestDAO.findByFriendRequestPk(revertFriendRequestPk);
+            friendRequestDAO.delete(revertFriendRequest);
+        }
 
         return messagesResponse.createResponse(endpoint, SuccessMessages.FRIEND_ADDED);
     }

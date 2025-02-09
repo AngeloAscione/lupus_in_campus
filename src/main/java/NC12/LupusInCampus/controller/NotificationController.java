@@ -64,8 +64,9 @@ public class NotificationController {
 
         String endpoint = RequestService.getEndpoint(request);
 
+        /*
         if (!Session.sessionIsActive(session))
-            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);*/
 
         DevicePk devicePk = new DevicePk();
         devicePk.setPlayerID(sendNotificationRequest.getReceiverId());
