@@ -9,20 +9,27 @@ import org.springframework.stereotype.Controller;
 public class WebSocketGameController {
 
     @MessageMapping("/joinLobby") // Client invia messaggio qui
-    @SendTo("/notifyAll/lobby") // Messaggio viene broadcastato a tutti i client connessi
+    @SendTo("/topic/lobby") // Messaggio viene broadcastato a tutti i client connessi
     public GameActionDTO joinLobby(GameActionDTO message) {
         return new GameActionDTO(message.getPlayer(), "si è unito alla lobby!");
     }
 
     @MessageMapping("/startGame")
-    @SendTo("/notifyAll/game") // Notifica tutti che la partita è iniziata
+    @SendTo("/topic/game") // Notifica tutti che la partita è iniziata
     public GameActionDTO startGame(GameActionDTO message) {
         return new GameActionDTO(message.getPlayer(), "ha avviato la partita!");
     }
 
     @MessageMapping("/gameAction")
-    @SendTo("/notifyAll/game") // Invia azioni a tutti i giocatori
+    @SendTo("/topic/game") // Invia azioni a tutti i giocatori
     public GameActionDTO handleGameAction(GameActionDTO action) {
         return new GameActionDTO(action.getPlayer(), action.getAction());
     }
+
+    @MessageMapping("/test") // Client invia un messaggio qui
+    @SendTo("/topic/responses") // Risposta inviata a tutti i client connessi
+    public String handleTestMessage(String message) {
+        return "Server ha ricevuto: " + message;
+    }
+
 }

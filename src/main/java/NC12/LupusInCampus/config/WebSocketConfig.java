@@ -13,13 +13,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws") // Endpoint WebSocket
-                .setAllowedOrigins("*") // Per sviluppo locale, poi restringere
-                .withSockJS(); // Supporto per client che non supportano WebSocket
+                .setAllowedOrigins("*"); // Permetti connessioni da qualsiasi origine (utile per test)
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/notifyAll"); // Canale di broadcasting
-        registry.setApplicationDestinationPrefixes("/game"); // Prefisso per le richieste in ingresso
+        registry.enableSimpleBroker("/topic"); // Canale per messaggi broadcast
+        registry.setApplicationDestinationPrefixes("/app"); // Prefisso per i messaggi in ingresso
     }
 }
