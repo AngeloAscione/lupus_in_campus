@@ -208,7 +208,7 @@ public class LobbyController {
         lobbyInvitation.setDataInvitation(LocalDateTime.now());
         lobbyInvitationDAO.save(lobbyInvitation);
 
-        ResponseEntity<?> responseNotify = notificationCaller.sendNotificationWebClient(String.valueOf(inviteFriendToLobbyRequest.getFriendId()), "Invito ad entrare in lobby");
+        ResponseEntity<?> responseNotify = notificationCaller.sendNotificationWebClient(String.valueOf(inviteFriendToLobbyRequest.getFriendId()), "Invito ad entrare in lobby", player);
 
         out.add(responseNotify);
         out.add(lobbyInvitation);

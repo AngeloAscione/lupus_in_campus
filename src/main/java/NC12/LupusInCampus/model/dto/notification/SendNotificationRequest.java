@@ -4,6 +4,7 @@ public class SendNotificationRequest {
 
     private int receiverId;
     private String message;
+    private String nickname;
 
     public SendNotificationRequest(int receiverId, String message) {
         this.receiverId = receiverId;
@@ -18,11 +19,16 @@ public class SendNotificationRequest {
         return message;
     }
 
+    public String getNickname() {
+        return nickname;
+    }
+
     @Override
     public String toString() {
         return "SendNotificationRequest{" +
                 "receiverId=" + receiverId +
                 ", message='" + message + '\'' +
+                ", nickname='" + nickname + '\'' +
                 '}';
     }
 }

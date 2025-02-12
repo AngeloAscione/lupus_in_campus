@@ -11,6 +11,9 @@ import NC12.LupusInCampus.model.enums.SuccessMessages;
 import NC12.LupusInCampus.service.RequestService;
 import NC12.LupusInCampus.utils.Session;
 import NC12.LupusInCampus.utils.clientServerComunication.MessagesResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +23,17 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.entity.ByteArrayEntity;
+
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +70,7 @@ public class NotificationController {
         device.setPlayerID(saveTokenRequest.getPlayerId());
         deviceDAO.save(device);
 
-        return messagesResponse.createResponse(endpoint, SuccessMessages.TOKEN_SAVED);
+        return messagesResponse.createResponse(endpoint, SuccessMessages.TOKEN_SAVED, device);
     }
 
     @PostMapping("/send")
@@ -76,76 +90,84 @@ public class NotificationController {
             return messagesResponse.createResponse(endpoint, ErrorMessages.DEVICES_NOT_FOUND);
 
         // create payload
-        Player p = (Player) session.getAttribute("player");
-        String message = "Hai un messaggio da " + p.getNickname() + "\n";
-        Map<String, Object> payload = createPayload(devices, message + sendNotificationRequest.getMessage());
+        String message = "Hai un messaggio da " + sendNotificationRequest.getNickname() + "\n";
+        PushyPushRequest push = createPayload(devices, message + sendNotificationRequest.getMessage());
 
         // send notification
-        ResponseEntity<?> response;
+        String message_res = null;
         try {
-            response = sendHttpToPushy(payload);
+            if (sendHttpToPushy(push)){
+                message = "success";
+            }
         }catch (Exception e){
             return messagesResponse.createResponse(endpoint, ErrorMessages.ERROR_SEND_NOTIFICATION, e);
         }
 
-        return messagesResponse.createResponse(endpoint, SuccessMessages.NOTIFICATION_SENT, response.getBody());
+        return messagesResponse.createResponse(endpoint, SuccessMessages.NOTIFICATION_SENT, message_res);
     }
 
-    public Map<String, Object> createPayload(List<Device> devices, String message) {
+    public PushyPushRequest createPayload(List<Device> devices, String message) {
         Map<String, Object> payload = new HashMap<>();
 
-        // list of device
+        // Extract device tokens
         List<String> tokens = devices.stream()
                 .map(Device::getDeviceToken)
                 .toList();
 
-        payload.put("data", Map.of("message", message));
-        payload.put("to", tokens);
+        String[] to = tokens.toArray(new String[tokens.size()]);
 
-        return payload;
+        // Ensure `message` is correctly passed inside the payload
+        payload.put("message", message);
+
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("badge", 1);
+        notification.put("title", "Lupus In Campus");
+        notification.put("body", message);
+
+        return new PushyPushRequest(payload, to, notification);
     }
 
-    public ResponseEntity<?> sendHttpToPushy(Map<String, Object> payload) {
 
-        // Prepare list of target device tokens
-        List<String> deviceTokens = (List<String>) payload.get("to");
+    public boolean sendHttpToPushy(PushyPushRequest pushyPushRequest){
 
-        // Convert to String[] array
-        String[] to = deviceTokens.toArray(new String[0]);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
 
-        // Estrai i dati dal payload (ad esempio il messaggio)
-        Map<String, String> payloadOut = new HashMap<>();
-        if (payload.containsKey("data")) {
-            Map<String, String> data = (Map<String, String>) payload.get("data");
-            if (data != null && data.containsKey("message")) {
-                // Aggiungi il messaggio al payloadOut
-                payloadOut.put("message", data.get("message"));
+            HttpClient client = new DefaultHttpClient();
+
+            // Create POST request
+            HttpPost request = new HttpPost(PUSHY_API_URL + pushyApiKey);
+
+            // Set content type to JSON
+            request.addHeader("Content-Type", "application/json");
+
+            // Convert post data to JSON
+            byte[] json = mapper.writeValueAsBytes(pushyPushRequest);
+
+            // Send post data as byte array
+            request.setEntity(new ByteArrayEntity(json));
+
+            // Execute the request
+            HttpResponse response = client.execute(request, new BasicHttpContext());
+
+            // Get response JSON as string
+            String responseJSON = EntityUtils.toString(response.getEntity());
+
+            // Convert JSON response into HashMap
+            Map<String, Object> map = mapper.readValue(responseJSON, Map.class);
+
+            // Got an error?
+            if (map.containsKey("error")) {
+                // Throw it
+                throw new Exception(map.get("error").toString());
             }
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
         }
 
-        // Aggiungi il campo "to" (destinatari) al payload
-        payloadOut.put("to", String.join(",", to));  // Unisci i destinatari in un'unica stringa separata da virgola
-
-        // Log della struttura finale del payload
-        System.out.println("Payload finale: " + payloadOut);
-
-        // Creazione degli headers per la richiesta HTTP
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + pushyApiKey);  // Usa l'API key per l'autenticazione
-
-        // Creazione dell'entità HTTP con payload e headers
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(payloadOut, headers);
-
-        // URL di Pushy con la tua API key
-        String url = PUSHY_API_URL + pushyApiKey;
-
-        // Creazione di RestTemplate per inviare la richiesta
-        RestTemplate restTemplate = new RestTemplate();
-
-        // Restituisci la risposta (può essere un JSON con il risultato dell'invio della notifica)
-        return restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-
+        return true;
+        // ObjectMapper for JSON conversio
 
 
         /*System.out.println("dentro - payload: "+payload);
@@ -167,5 +189,19 @@ public class NotificationController {
 
         return restTemplate.postForEntity(url, request, ResponseEntity.class);*/
 
+    }
+
+
+    public static class PushyPushRequest {
+        public Object to;
+        public Object data;
+
+        public Object notification;
+
+        public PushyPushRequest(Object data, Object to, Object notification) {
+            this.to = to;
+            this.data = data;
+            this.notification = notification;
+        }
     }
 }
