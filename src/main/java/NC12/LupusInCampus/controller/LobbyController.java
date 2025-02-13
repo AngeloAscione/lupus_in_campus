@@ -11,6 +11,7 @@ import NC12.LupusInCampus.model.Lobby;
 import NC12.LupusInCampus.model.Player;
 import NC12.LupusInCampus.service.RequestService;
 import NC12.LupusInCampus.service.ListPlayersLobbiesService;
+import NC12.LupusInCampus.utils.LoggerUtil;
 import NC12.LupusInCampus.utils.Session;
 import NC12.LupusInCampus.model.dao.LobbyInvitationDAO;
 import NC12.LupusInCampus.model.LobbyInvitation;
@@ -126,9 +127,17 @@ public class LobbyController {
         String endpoint = RequestService.getEndpoint(request);
 
         int code = params.get("code");
+        LoggerUtil.logInfo("Joining lobby " + code);
 
         if (!Session.sessionIsActive(session))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
+
+        if (lobbyLists.getListSize() == 0) {
+            List<Lobby> lobbies = lobbyDAO.findAll();
+            for (Lobby lobby : lobbies) {
+                lobbyLists.addLobbyCode(lobby.getCode());
+            }
+        }
 
         if (!lobbyLists.containsCode(code))
             return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_NOT_FOUND);

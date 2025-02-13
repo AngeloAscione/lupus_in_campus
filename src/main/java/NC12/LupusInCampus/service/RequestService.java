@@ -10,7 +10,7 @@ public class RequestService {
     //endpoint + log
     public static String getEndpoint(HttpServletRequest request) {
         String endpoint = request.getRequestURI();
-        LoggerUtil.logInfo("-> Ricevuta richiesta "+endpoint);
+        LoggerUtil.logInfo("-> Ricevuta richiesta da " + request.getRemoteAddr() + " per endpoint: " + endpoint);
         return endpoint;
     }
 }

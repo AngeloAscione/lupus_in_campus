@@ -41,5 +41,8 @@ public class ListPlayersLobbiesService {
         return lobbyLists.get(code).contains(player);
     }
 
+    public int getListSize(){
+        return lobbyLists.size();
+    }
 
 }
