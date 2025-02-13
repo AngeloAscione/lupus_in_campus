@@ -8,6 +8,8 @@ import NC12.LupusInCampus.model.dao.LobbyDAO;
 import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.PlayerRole;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
+import NC12.LupusInCampus.roleFactory.RoleAssignmentFactory;
+import NC12.LupusInCampus.roleFactory.RoleAssignmentFactoryProvider;
 import NC12.LupusInCampus.service.ListPlayersLobbiesService;
 import NC12.LupusInCampus.service.RequestService;
 import NC12.LupusInCampus.utils.LoggerUtil;
@@ -23,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,41 +85,10 @@ public class GameController {
 
         int numPlayers = players.size();
         LoggerUtil.logInfo(" -> Numero giocatori "+numPlayers);
-        List<PlayerRole> availableRoles = new ArrayList<>();
 
-        if (isBetween(numPlayers, 6, 8)) {
-            LoggerUtil.logInfo(" -> primo range");
-
-            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
-            availableRoles.add(PlayerRole.RECTOR);
-            availableRoles.add(PlayerRole.RESEARCHER);
-            availableRoles.add(PlayerRole.GRADUATE);
-
-        }else if (isBetween(numPlayers, 9, 12)) {
-            LoggerUtil.logInfo(" -> secondo range");
-
-            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
-            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
-            availableRoles.add(PlayerRole.RECTOR);
-            availableRoles.add(PlayerRole.RESEARCHER);
-            availableRoles.add(PlayerRole.GRADUATE);
-
-            if (numPlayers == 12){
-                availableRoles.add(PlayerRole.GRADUATE);
-            }
-
-        }else if (isBetween(numPlayers, 13, 18)) {
-            LoggerUtil.logInfo(" -> terzo range");
-
-            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
-            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
-            availableRoles.add(PlayerRole.STUDENT_OUT_COURSE);
-            availableRoles.add(PlayerRole.RECTOR);
-            availableRoles.add(PlayerRole.RESEARCHER);
-            availableRoles.add(PlayerRole.GRADUATE);
-            availableRoles.add(PlayerRole.GRADUATE);
-        }
-
+        //abstract factory
+        RoleAssignmentFactory factory = RoleAssignmentFactoryProvider.getFactory(numPlayers);
+        List<PlayerRole> availableRoles = factory.getRoles(numPlayers);
         LoggerUtil.logInfo(" -> Ruoli possibili: "+availableRoles);
 
         // Randomly assign roles to players
