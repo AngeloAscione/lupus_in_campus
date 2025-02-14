@@ -45,10 +45,12 @@ public class MessagesResponse {
         }
 
         // print log
-        if (hasError)
+        if (hasError){
             LoggerUtil.logError("<- Risposta alla richiesta " +from, new Exception(this.toString()));
+            System.out.println("\n\n");
+        }
         else
-            LoggerUtil.logInfo("<- Risposta alla richiesta " + from + ":\n" + this.toString());
+            LoggerUtil.logInfo("<- Risposta alla richiesta " + from + ":\n" + this + "\n\n");
 
         //return response
         return ResponseEntity.status(HttpStatus.OK).body(this.toString());
