@@ -97,7 +97,7 @@ public class NotificationController {
         String message_res = null;
         try {
             if (sendHttpToPushy(push)){
-                message = "success";
+                message_res = "success";
             }
         }catch (Exception e){
             return messagesResponse.createResponse(endpoint, ErrorMessages.ERROR_SEND_NOTIFICATION, e);
