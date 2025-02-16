@@ -106,7 +106,4 @@ public class GameController {
         return players;
     }
 
-    public static boolean isBetween(int x, int minIncluded, int maxIncluded){
-        return x >= minIncluded && x <= maxIncluded;
-    }
 }

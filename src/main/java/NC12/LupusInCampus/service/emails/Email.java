@@ -1,5 +1,7 @@
 package NC12.LupusInCampus.service.emails;
 
+import NC12.LupusInCampus.utils.LoggerUtil;
+
 import java.util.Date;
 import java.util.Properties;
 import javax.mail.*;
@@ -25,11 +27,11 @@ public class Email {
     }
 
     private Email() {
-        System.out.println("SSLEmail Start");
+        LoggerUtil.logInfo("SSLEmail Started");
         props = getProps();
         auth = getAuthenticator();
         session = getSession();
-        System.out.println("Session created");
+        LoggerUtil.logInfo("Session created");
     }
     private Properties getProps() {
         props = new Properties();
@@ -84,10 +86,10 @@ public class Email {
             msg.setSentDate(new Date());
 
             msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail, false));
-            System.out.println("Message is ready");
+            LoggerUtil.logInfo("Message is ready");
             Transport.send(msg);
 
-            System.out.println("EMail Sent Successfully!!");
+            LoggerUtil.logInfo("Email Sent Successfully!!");
         }
         catch (Exception e) {
             e.printStackTrace();
