@@ -82,15 +82,24 @@ public class LobbyController {
 
     // to create a lobby
     @PutMapping("/create-lobby")
-    public ResponseEntity<?> createLobby(@RequestBody CreateLobbyRequest createLobbyRequest, HttpSession session, HttpServletRequest request) {
+     public ResponseEntity<?> createLobby(@RequestBody Map<String, String> params, HttpSession session, HttpServletRequest request) {
 
         String endpoint = RequestService.getEndpoint(request);
 
         if (!Session.sessionIsActive(session))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
+
         Player playerCreator = (Player) session.getAttribute("player");
         int idCreator = playerCreator.getId();
+
+        LoggerUtil.logInfo("param: "+ params);
+        LoggerUtil.logInfo("param tipo: "+ params.get("tipo"));
+
+
+        if ( !params.get("tipo").equals("Pubblica") && !params.get("tipo").equals("Privata") ) {
+            return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_TYPE_NOT_SUPPORTED);
+        }
 
         Lobby newLobby = new Lobby();
         newLobby.setCode(createLobbyCode());
@@ -99,7 +108,7 @@ public class LobbyController {
         newLobby.setMinNumPlayer(6);
         newLobby.setNumPlayer(1);
         newLobby.setMaxNumPlayer(18);
-        newLobby.setType(createLobbyRequest.getTipo());
+        newLobby.setType(params.get("tipo"));
         newLobby.setState("Attesa giocatori");
 
         lobbyDAO.save(newLobby);
