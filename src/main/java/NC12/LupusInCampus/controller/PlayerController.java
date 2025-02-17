@@ -214,14 +214,14 @@ public class PlayerController {
     public List<ErrorMessages> validPlayerRegistration(String nickname, String email, String password){
         List<ErrorMessages> errors = new ArrayList<>();
 
-        if (nickname.isBlank() || nickname.isEmpty())
+        if (nickname.isBlank())
             errors.add(ErrorMessages.EMPTY_NICKNAME_FIELD);
         else if (playerDAO.findPlayerByNickname(nickname) != null)
             errors.add(ErrorMessages.NICKNAME_ALREADY_USED);
 
         if (!errors.isEmpty()) return errors;
 
-        if (email.isBlank() || email.isEmpty())
+        if (email.isBlank())
             errors.add(ErrorMessages.EMPTY_EMAIL_FIELD);
         else if (!validator.emailIsValid(email))
             errors.add(ErrorMessages.EMAIL_FORMAT);
@@ -230,7 +230,7 @@ public class PlayerController {
 
         if (!errors.isEmpty()) return errors;
 
-        if (password.isBlank() || password.isEmpty())
+        if (password.isBlank())
             errors.add(ErrorMessages.EMPTY_PASSWORD_FIELD);
 
         return errors;
@@ -239,7 +239,7 @@ public class PlayerController {
     public List<ErrorMessages> validPlayerLogin(String email, String password){
         List<ErrorMessages> errors = new ArrayList<>();
 
-        if (email.isBlank() || email.isEmpty())
+        if (email.isBlank())
             errors.add(ErrorMessages.EMPTY_EMAIL_FIELD);
         else if (!validator.emailIsValid(email))
             errors.add(ErrorMessages.EMAIL_FORMAT);
@@ -248,7 +248,7 @@ public class PlayerController {
 
         if (!errors.isEmpty()) return errors;
 
-        if (password.isBlank() || password.isEmpty())
+        if (password.isBlank())
             errors.add(ErrorMessages.EMPTY_PASSWORD_FIELD);
 
         if (errors.isEmpty()){

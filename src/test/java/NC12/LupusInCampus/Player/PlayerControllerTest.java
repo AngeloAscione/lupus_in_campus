@@ -6,8 +6,7 @@ import NC12.LupusInCampus.model.dao.PlayerDAO;
 import NC12.LupusInCampus.model.dto.player.RegistrationRequest;
 import NC12.LupusInCampus.model.enums.ErrorMessages;
 import NC12.LupusInCampus.model.enums.SuccessMessages;
-import NC12.LupusInCampus.service.PasswordResetService;
-import NC12.LupusInCampus.utils.LoggerUtil;
+
 import NC12.LupusInCampus.utils.Validator;
 import NC12.LupusInCampus.utils.clientServerComunication.MessagesResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +14,7 @@ import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Incubating;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -58,9 +57,9 @@ public class PlayerControllerTest {
     }
 
     @Test
-    void testRegistrationWithSomeEmptyFields(){ // TC_1.1_1 or TC_1.2_1 or TC_1.3_1
+    void testRegistrationWithNicknameBlank(){ // TC_1.1_1
         //cambiare il campo vuoto per testare tutto
-        String nickname = "";
+        String nickname = "  "; // "" or " "
         String email = "franco@gmail.com";
         String password = "franchinello12";
 
@@ -97,6 +96,33 @@ public class PlayerControllerTest {
         assertEquals(ErrorMessages.NICKNAME_ALREADY_USED.getMessage(), response.getBody());
         verify(playerDAO, never()).save(any(Player.class));
     }
+
+    @Test
+    void testRegistrationWithEmailBlank(){ // TC_1.2_1
+        //cambiare il campo vuoto per testare tutto
+        String nickname = "frank";
+        String email = "  "; // "" or " "
+        String password = "franchinello12";
+
+        //comportamento atteso
+        when(registrationRequest.getNickname()).thenReturn(nickname);
+        when(playerDAO.findPlayerByNickname(nickname)).thenReturn(null);
+        when(registrationRequest.getEmail()).thenReturn(email);
+        when(messagesResponse.createResponse(anyString(), eq(ErrorMessages.EMPTY_EMAIL_FIELD)))
+                .thenReturn(ResponseEntity.ok().body(ErrorMessages.EMPTY_EMAIL_FIELD.getMessage()));
+
+        //chiamata all'endpoint
+        ResponseEntity<String> response = playerController.playerRegistration(registrationRequest, session, request);
+
+        //verifica se il messaggio d'errore sia quello atteso
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(ErrorMessages.EMPTY_EMAIL_FIELD.getMessage(), response.getBody());
+
+        //verifica che il metodo "save" non venga chiamato (never), perché la registrazione non deve andare a buon fine
+        verify(playerDAO, never()).save(any(Player.class));
+    }
+
+
 
     @Test
     void testRegistrationWithWrongEmailFormat(){ // TC_1.2_2
@@ -140,9 +166,38 @@ public class PlayerControllerTest {
         verify(playerDAO, never()).save(any(Player.class));
     }
 
+    @Test
+    void testRegistrationWithPasswordBlank(){ // TC_1.3_1
+        //cambiare il campo vuoto per testare tutto
+        String nickname = "frank";
+        String email = "franco1@gmail.com";
+        String password = "  "; // "" or " "
+
+        //comportamento atteso
+        when(registrationRequest.getNickname()).thenReturn(nickname);
+        when(playerDAO.findPlayerByNickname(nickname)).thenReturn(null);
+        when(registrationRequest.getEmail()).thenReturn(email);
+        when(validator.emailIsValid(email)).thenReturn(true);
+        when(playerDAO.findPlayerByEmail(email)).thenReturn(null);
+        when(registrationRequest.getPassword()).thenReturn(password);
+        when(messagesResponse.createResponse(anyString(), eq(ErrorMessages.EMPTY_PASSWORD_FIELD)))
+                .thenReturn(ResponseEntity.ok().body(ErrorMessages.EMPTY_PASSWORD_FIELD.getMessage()));
+
+        //chiamata all'endpoint
+        ResponseEntity<String> response = playerController.playerRegistration(registrationRequest, session, request);
+
+        //verifica se il messaggio d'errore sia quello atteso
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(ErrorMessages.EMPTY_PASSWORD_FIELD.getMessage(), response.getBody());
+
+        //verifica che il metodo "save" non venga chiamato (never), perché la registrazione non deve andare a buon fine
+        verify(playerDAO, never()).save(any(Player.class));
+    }
+
+
 
     @Test
-    void testSuccessfulRegistration() {
+    void testSuccessfulRegistration() { // TC_1.4
         String nickname = "frank1";
         String email = "franco1@gmail.com";
         String password = "franchinello12";
