@@ -64,7 +64,7 @@ public class LobbyController {
 
     //to receive a list of all active public lobbies
     @GetMapping("/active-public-lobbies")
-    public ResponseEntity<?> getActivePublicLobbies(HttpSession session, HttpServletRequest request) {
+    public ResponseEntity<String> getActivePublicLobbies(HttpSession session, HttpServletRequest request) {
 
         String endpoint = RequestService.getEndpoint(request);
 
@@ -132,14 +132,18 @@ public class LobbyController {
 
     // for the player who wants to join a lobby
     @PostMapping("/join-lobby")
-    public ResponseEntity<?> joinLobby(@RequestBody Map<String, Integer> params, HttpSession session, HttpServletRequest request) {
+    public ResponseEntity<String> joinLobby(@RequestBody Map<String, Integer> params, HttpSession session, HttpServletRequest request) {
         String endpoint = RequestService.getEndpoint(request);
 
         int code = params.get("code");
         LoggerUtil.logInfo("Joining lobby " + code);
 
+
         if (!Session.sessionIsActive(session))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
+
+        if (lobbyDAO.count() == 0)
+            return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_NOT_FOUND);
 
         if (lobbyLists.getListSize() == 0) {
             List<Lobby> lobbies = lobbyDAO.findAll();
@@ -147,6 +151,7 @@ public class LobbyController {
                 lobbyLists.addLobbyCode(lobby.getCode());
             }
         }
+
 
         if (!lobbyLists.containsCode(code))
             return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_NOT_FOUND);
