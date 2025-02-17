@@ -32,12 +32,14 @@ public class PlayerController {
     private final PlayerDAO playerDAO;
     private final PasswordResetService passwordResetService;
     private final MessagesResponse messagesResponse;
+    private final Validator validator;
 
     @Autowired
-    public PlayerController(PlayerDAO playerDAO, PasswordResetService passwordResetService, MessagesResponse messagesResponse) {
+    public PlayerController(PlayerDAO playerDAO, PasswordResetService passwordResetService, MessagesResponse messagesResponse, Validator validator) {
         this.playerDAO = playerDAO;
         this.passwordResetService = passwordResetService;
         this.messagesResponse = messagesResponse;
+        this.validator = validator;
     }
 
     @PutMapping("/registration")
@@ -143,7 +145,7 @@ public class PlayerController {
         String endpoint = RequestService.getEndpoint(request);
 
         String email = params.get("email");
-        if (!Validator.emailIsValid(email)) {
+        if (!validator.emailIsValid(email)) {
             return messagesResponse.createResponse(endpoint, ErrorMessages.EMAIL_FORMAT);
         }
 
@@ -221,7 +223,7 @@ public class PlayerController {
 
         if (email.isBlank() || email.isEmpty())
             errors.add(ErrorMessages.EMPTY_EMAIL_FIELD);
-        else if (!Validator.emailIsValid(email))
+        else if (!validator.emailIsValid(email))
             errors.add(ErrorMessages.EMAIL_FORMAT);
         else if (playerDAO.findPlayerByEmail(email) != null)
             errors.add(ErrorMessages.EMAIL_ALREADY_USED);
@@ -239,7 +241,7 @@ public class PlayerController {
 
         if (email.isBlank() || email.isEmpty())
             errors.add(ErrorMessages.EMPTY_EMAIL_FIELD);
-        else if (!Validator.emailIsValid(email))
+        else if (!validator.emailIsValid(email))
             errors.add(ErrorMessages.EMAIL_FORMAT);
         else if (playerDAO.findPlayerByEmail(email) == null)
             errors.add(ErrorMessages.EMAIL_NOT_REGISTERED);
