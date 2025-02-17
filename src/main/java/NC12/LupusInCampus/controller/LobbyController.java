@@ -190,7 +190,7 @@ public class LobbyController {
 
     // for the player who wants to leave a lobby
     @PostMapping("/leave-lobby")
-    public ResponseEntity<?> leaveLobby(@RequestParam Map<String, Integer> params, HttpSession session, HttpServletRequest request) {
+    public ResponseEntity<?> leaveLobby(@RequestBody Map<String, Integer> params, HttpSession session, HttpServletRequest request) {
         String endpoint = RequestService.getEndpoint(request);
 
         int code = params.get("codeLobby");
@@ -206,7 +206,12 @@ public class LobbyController {
         Lobby lobby = lobbyDAO.findLobbyByCode(code);
         lobby.setNumPlayer(lobbyLists.getListPlayers(code).size());
 
-        return messagesResponse.createResponse(endpoint, SuccessMessages.PLAYER_REMOVED_LOBBY, lobby);
+        if (lobby.getNumPlayer() <= 0){
+            lobbyDAO.delete(lobby);
+            lobbyLists.removeLobbyCode(code);
+        }
+
+        return messagesResponse.createResponse(endpoint, SuccessMessages.PLAYER_REMOVED_LOBBY, player);
     }
 
     @PostMapping("/invite-friend-lobby")
