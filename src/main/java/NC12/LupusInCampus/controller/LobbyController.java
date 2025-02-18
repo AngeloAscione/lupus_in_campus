@@ -36,15 +36,16 @@ public class LobbyController {
     private static LobbyDAO lobbyDAO = null;
     private final LobbyInvitationDAO lobbyInvitationDAO;
     private final NotificationCaller notificationCaller;
-    private final ListPlayersLobbiesService lobbyLists = new ListPlayersLobbiesService();
+    private static ListPlayersLobbiesService lobbyLists = new ListPlayersLobbiesService();
     private final MessagesResponse messagesResponse;
 
 
     @Autowired
-    public LobbyController(LobbyDAO lobbyDAO_param, LobbyInvitationDAO lobbyInvitationDAO, NotificationCaller notificationCaller, MessagesResponse messagesResponse) {
+    public LobbyController(LobbyDAO lobbyDAO_param, LobbyInvitationDAO lobbyInvitationDAO, NotificationCaller notificationCaller, ListPlayersLobbiesService lobbyLists, MessagesResponse messagesResponse) {
         lobbyDAO = lobbyDAO_param;
         this.lobbyInvitationDAO = lobbyInvitationDAO;
         this.notificationCaller = notificationCaller;
+        LobbyController.lobbyLists = lobbyLists;
         this.messagesResponse = messagesResponse;
     }
 
@@ -89,8 +90,11 @@ public class LobbyController {
         if (!Session.sessionIsActive(session))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
-
         Player playerCreator = (Player) session.getAttribute("player");
+
+        if (lobbyLists.containsPlayerSomewhere(playerCreator))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_NOT_CREATE);
+
         int idCreator = playerCreator.getId();
 
         LoggerUtil.logInfo("param: "+ params);
@@ -101,6 +105,16 @@ public class LobbyController {
             return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_TYPE_NOT_SUPPORTED);
         }
 
+        Lobby newLobby = createNewLobby(idCreator, params.get("tipo"));
+
+        lobbyDAO.save(newLobby);
+        lobbyLists.addLobbyCode(newLobby.getCode());
+        lobbyLists.addPlayer(playerCreator, newLobby.getCode());
+
+        return messagesResponse.createResponse(endpoint, SuccessMessages.LOBBY_CREATED, newLobby);
+    }
+
+    private Lobby createNewLobby(int idCreator, String tipo) {
         Lobby newLobby = new Lobby();
         newLobby.setCode(createLobbyCode());
         newLobby.setCreatorID(idCreator);
@@ -108,14 +122,10 @@ public class LobbyController {
         newLobby.setMinNumPlayer(6);
         newLobby.setNumPlayer(1);
         newLobby.setMaxNumPlayer(18);
-        newLobby.setType(params.get("tipo"));
+        newLobby.setType(tipo);
         newLobby.setState("Attesa giocatori");
 
-        lobbyDAO.save(newLobby);
-        lobbyLists.addLobbyCode(newLobby.getCode());
-        lobbyLists.addPlayer(playerCreator, newLobby.getCode());
-
-        return messagesResponse.createResponse(endpoint, SuccessMessages.LOBBY_CREATED, newLobby);
+        return newLobby;
     }
 
     // to delete a created lobby
@@ -132,7 +142,7 @@ public class LobbyController {
 
     // for the player who wants to join a lobby
     @PostMapping("/join-lobby")
-    public synchronized ResponseEntity<?> joinLobby(@RequestBody Map<String, Integer> params, HttpSession session, HttpServletRequest request) {
+    public synchronized ResponseEntity<String> joinLobby(@RequestBody Map<String, Integer> params, HttpSession session, HttpServletRequest request) {
         String endpoint = RequestService.getEndpoint(request);
 
         int code = params.get("code");
@@ -140,6 +150,12 @@ public class LobbyController {
 
         if (!Session.sessionIsActive(session))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
+
+
+
+        if (lobbyDAO.count() == 0) {
+            return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_NOT_FOUND);
+        }
 
         if (lobbyLists.getListSize() == 0) {
             List<Lobby> lobbies = lobbyDAO.findAll();
@@ -152,8 +168,14 @@ public class LobbyController {
             return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_NOT_FOUND);
 
         Lobby lobby = lobbyDAO.findLobbyByCode(code);
-        if (lobbyLists.getListPlayers(code).size() >= lobby.getMaxNumPlayer())
+
+        if (lobbyLists.getListPlayers(code).size() == lobby.getMaxNumPlayer()) {
             return messagesResponse.createResponse(endpoint, ErrorMessages.LIMIT_PLAYER_LOBBY);
+        }
+
+        if (lobby.getState().equals("In corso")) {
+            return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_ALREADY_STARTED);
+        }
 
         Player player = (Player) session.getAttribute("player");
         if (lobbyLists.containsPlayer(code, player))

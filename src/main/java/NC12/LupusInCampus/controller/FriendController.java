@@ -91,13 +91,20 @@ public class FriendController {
         String endpoint = RequestService.getEndpoint(request);
         LoggerUtil.logInfo(params.get("friendId"));
 
+        int friendId = Integer.parseInt(params.get("friendId"));
+
         if (!Session.sessionIsActive(session))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
-        if (playerDAO.findPlayerById(Integer.parseInt(params.get("friendId"))) == null)
+        if (playerDAO.findPlayerById(friendId) == null)
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_FOUND);
 
         Player player = (Player) session.getAttribute("player");
+
+        List<Player> friend = friendDAO.findFriendsByPlayerId(player.getId());
+        Player receiver = playerDAO.findPlayerById(friendId);
+        if (friend.contains(receiver))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_ALREADY_FRIEND);
 
         FriendRequestPk friendRequestPk = new FriendRequestPk();
         friendRequestPk.setSenderId(player.getId());

@@ -2,15 +2,19 @@ package NC12.LupusInCampus.service;
 
 
 import NC12.LupusInCampus.model.Player;
+import org.springframework.stereotype.Component;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Component
 public class ListPlayersLobbiesService {
-    private static final Map<Integer, List<Player>> lobbyLists = new ConcurrentHashMap<>();
+    //private static final Map<Integer, List<Player>> lobbyLists = new ConcurrentHashMap<>();ù
+    private static final Map<Integer, List<Player>> lobbyLists = new HashMap<>();
 
 
     public List<Player> getListPlayers(int id) {
@@ -35,6 +39,10 @@ public class ListPlayersLobbiesService {
 
     public boolean containsCode(int code){
         return lobbyLists.containsKey(code);
+    }
+
+    public boolean containsPlayerSomewhere(Player player){
+        return lobbyLists.values().stream().anyMatch(list -> list.contains(player));
     }
 
     public boolean containsPlayer(int code, Player player){

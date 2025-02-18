@@ -167,27 +167,6 @@ public class NotificationController {
         }
 
         return true;
-        // ObjectMapper for JSON conversio
-
-
-        /*System.out.println("dentro - payload: "+payload);
-        RestTemplate restTemplate = new RestTemplate();
-        System.out.println("dopo rest");
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + pushyApiKey);
-        System.out.println("dopo headers");
-
-        Map<String, Object> request = new HttpEntity<>(payload, headers);
-        System.out.println("dopo request - request: "+request);
-
-        String url = PUSHY_API_URL + pushyApiKey;
-
-        System.out.println(url);
-        System.out.println(request);
-
-        return restTemplate.postForEntity(url, request, ResponseEntity.class);*/
 
     }
 
