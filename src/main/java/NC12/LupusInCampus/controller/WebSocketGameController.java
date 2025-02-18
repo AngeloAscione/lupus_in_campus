@@ -29,6 +29,7 @@ public class WebSocketGameController {
     private static MessageQueueManager messageQueueManager = new MessageQueueManager();
 
     private static Map<String, Map<String, Boolean>> running_games = new HashMap<>();
+    private static Map<String, List<Player>> games_players = new HashMap<>();
 
     private static Map<String, Integer> werevolves_vote = new HashMap<>();
     private static Map<String, Map<String, Integer>> voted_players = new HashMap<>();
@@ -57,7 +58,12 @@ public class WebSocketGameController {
         LobbyDAO lobbyDAO = LobbyController.getLobbyDAO();
         GameDAO gameDAO = GameController.getGameDAO();
         Game game = gameDAO.findLastCreatedGameByCreatorId(lobbyDAO.findLobbyByCode(Integer.parseInt(lobbyCode)).getCreatorID());
-        List<Player> players = gameDAO.findPartecipantsByIdGame(game.getId());
+        List<Player> players;
+        if (!games_players.containsKey(lobbyCode)) {
+            games_players.put(lobbyCode, gameDAO.findPartecipantsByIdGame(game.getId()));
+        }
+        players = games_players.get(lobbyCode);
+
 
         if (!running_games.containsKey(lobbyCode)){
             running_games.put(lobbyCode, new HashMap<String, Boolean>());
@@ -74,25 +80,44 @@ public class WebSocketGameController {
 
         }
 
+        GameUpdateMessage gameUpdateMessagecol = null;
         if (!running_games.get(lobbyCode).containsKey(message.getVoted_player())){
-            messagingTemplate.convertAndSend(topic, new GameUpdateMessage("RETRY_VOTE", "Il giocatore votato non è in partita", lobbyCode));
-            return;
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("game_phase", message.getPhase());
+            jsonObject.addProperty("message", "Il giocatore votato non è in partita");
+            gameUpdateMessagecol = new GameUpdateMessage("RETRY_VOTE", jsonObject.getAsString(), lobbyCode);
+            message.setPhase("ERROR");
         }
 
         switch (message.getPhase()){
             case "werewolves":{
                 Boolean result = doProcessWerewolvesVotes(lobbyCode, message);
                 if (result != null && !result.booleanValue()) {
-                    messagingTemplate.convertAndSend(topic, new GameUpdateMessage("RETRY_VOTE", "Tutti gli studenti fuori corso devono essere d'accordo", lobbyCode));
+                    JsonObject jsonObject = new JsonObject();
+                    jsonObject.addProperty("game_phase", message.getPhase());
+                    jsonObject.addProperty("message", "Tutti gli studenti fuori corso devono essere d'accordo");
+                    gameUpdateMessagecol = new GameUpdateMessage("RETRY_VOTE", jsonObject.getAsString(), lobbyCode);
                 } else if (result != null && result.booleanValue()) {
-                    messagingTemplate.convertAndSend(topic, new GameUpdateMessage("NEXT_PHASE", "bodyguard", lobbyCode));
+                    gameUpdateMessagecol = new GameUpdateMessage("NEXT_PHASE", "bodyguard", lobbyCode);
                 }
                 break;
             }
             case "bodyguard":{
+                doProcessBodyguardVote(lobbyCode, message);
+                gameUpdateMessagecol = new GameUpdateMessage("NEXT_PHASE", "seer", lobbyCode);
                 break;
             }
             case "seer":{
+                Boolean result = doProcessSeerVote(lobbyCode, message, players);
+                String result_message;
+                if (result != null && result.booleanValue()) {
+                    result_message = "Hai trovato uno studente fuori corso";
+                } else {
+                    result_message = "Non hai trovato uno studente fuori corso";
+                }
+                String seerNickname = players.stream().filter(p -> p.getRole().equals("Ricercatore")).findFirst().get().getNickname();
+                sendMessageToPlayer(seerNickname, new GameUpdateMessage("SEER_RESULT", result_message, lobbyCode));
+                gameUpdateMessagecol = new GameUpdateMessage("NEXT_PHASE", "discussion", lobbyCode);
                 break;
             }
             case "discussion":{
@@ -101,7 +126,10 @@ public class WebSocketGameController {
         }
 
 
-
+        //TODO:
+        // - Gestire il retry dei giocatori lato client
+        // - Gestire la notifica al seer lato client
+        // - Gestire la votazione e l'espulsione lato server
 
 
         // Variabile statica che conta le votazioni, che si resetta quando si conferma il voto e che deve adattarsi al numero dei lupi presenti in gioco
@@ -113,6 +141,18 @@ public class WebSocketGameController {
         // Prima cosa, prendere lista giocatori nella lobby con lobbyCode
 
         LoggerUtil.logInfo("Ricevuti da client " + lobbyCode + " " + message.toString());
+        messagingTemplate.convertAndSend(topic, gameUpdateMessagecol);
+    }
+
+    private Boolean doProcessSeerVote(String lobbyCode, GamePhaseResult message, List<Player> players) {
+        Player tmp = players.stream().filter(p -> p.getNickname().equals(message.getVoted_player())).findFirst().orElse(null);
+        if (tmp == null) {
+            return null;
+        }
+
+        if (tmp.getRole().equals("Studente fuori corso")) return true;
+
+        return false;
     }
 
     private Boolean doProcessWerewolvesVotes(String lobbyCode, GamePhaseResult message) {
@@ -141,12 +181,28 @@ public class WebSocketGameController {
                 running_games.get(lobbyCode).put(message.getVoted_player(), false);
                 return true;
             } else {
+                voted_players.get(lobbyCode).clear();
                 return false;
             }
         }
 
         werevolves_vote.put(lobbyCode, werevolves_vote.get(lobbyCode) - 1);
         return null;
+    }
+
+
+    private void doProcessBodyguardVote(String lobbyCode, GamePhaseResult message) {
+
+        if (voted_players.containsKey(lobbyCode)){
+            if (voted_players.get(lobbyCode).containsKey(message.getVoted_player())){
+                running_games.get(lobbyCode).put(message.getVoted_player(), true);
+            }
+        }
+    }
+
+    public static void sendMessageToPlayer(String nickname, GameUpdateMessage message) {
+        String topic = "/topic/lobby/" + message.getLobbyCode() + "/" + nickname; // Dynamic topic
+        messagingTemplate.convertAndSend(topic, message);
     }
 
     public static void assignRolesToPlayers(String nickname, GameUpdateMessage message) {
