@@ -41,6 +41,10 @@ public class ListPlayersLobbiesService {
         return lobbyLists.containsKey(code);
     }
 
+    public boolean containsPlayerSomewhere(Player player){
+        return lobbyLists.values().stream().anyMatch(list -> list.contains(player));
+    }
+
     public boolean containsPlayer(int code, Player player){
         return lobbyLists.get(code).contains(player);
     }

@@ -37,7 +37,9 @@ public enum ErrorMessages {
     ERROR_SEND_NOTIFICATION(-20, "Errore nell'invio della notifica"),
 
     INCORRECT_OPERATION(-21, "Operazione non corretta"),
-    LOBBY_ALREADY_STARTED(-26, "Lobby già startata");
+    LOBBY_ALREADY_STARTED(-26, "Lobby già startata"),
+    PLAYER_ALREADY_FRIEND(-27, "Giocatore già presente nella lista amici"),
+    LOBBY_NOT_CREATE(-28, "Lobby non creata");
 
     private final String message;
     private final int code;

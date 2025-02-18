@@ -90,8 +90,11 @@ public class LobbyController {
         if (!Session.sessionIsActive(session))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
 
-
         Player playerCreator = (Player) session.getAttribute("player");
+
+        if (lobbyLists.containsPlayerSomewhere(playerCreator))
+            return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_NOT_CREATE);
+
         int idCreator = playerCreator.getId();
 
         LoggerUtil.logInfo("param: "+ params);
@@ -102,6 +105,16 @@ public class LobbyController {
             return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_TYPE_NOT_SUPPORTED);
         }
 
+        Lobby newLobby = createNewLobby(idCreator, params.get("tipo"));
+
+        lobbyDAO.save(newLobby);
+        lobbyLists.addLobbyCode(newLobby.getCode());
+        lobbyLists.addPlayer(playerCreator, newLobby.getCode());
+
+        return messagesResponse.createResponse(endpoint, SuccessMessages.LOBBY_CREATED, newLobby);
+    }
+
+    private Lobby createNewLobby(int idCreator, String tipo) {
         Lobby newLobby = new Lobby();
         newLobby.setCode(createLobbyCode());
         newLobby.setCreatorID(idCreator);
@@ -109,14 +122,10 @@ public class LobbyController {
         newLobby.setMinNumPlayer(6);
         newLobby.setNumPlayer(1);
         newLobby.setMaxNumPlayer(18);
-        newLobby.setType(params.get("tipo"));
+        newLobby.setType(tipo);
         newLobby.setState("Attesa giocatori");
 
-        lobbyDAO.save(newLobby);
-        lobbyLists.addLobbyCode(newLobby.getCode());
-        lobbyLists.addPlayer(playerCreator, newLobby.getCode());
-
-        return messagesResponse.createResponse(endpoint, SuccessMessages.LOBBY_CREATED, newLobby);
+        return newLobby;
     }
 
     // to delete a created lobby
