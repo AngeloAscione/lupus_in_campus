@@ -2,14 +2,15 @@ package NC12.LupusInCampus.model.dto.game;
 
 public class GamePhaseResult {
     private String phase;
-    private String voted_player;
+    private String votedPlayer;
+    private String votingPlayer;
 
     public GamePhaseResult() {
     }
 
     public GamePhaseResult(String phase, String voted_player) {
         this.phase = phase;
-        this.voted_player = voted_player;
+        this.votedPlayer = voted_player;
     }
 
     public String getPhase() {
@@ -20,19 +21,28 @@ public class GamePhaseResult {
         this.phase = phase;
     }
 
-    public String getVoted_player() {
-        return voted_player;
+    public String getVotedPlayer() {
+        return votedPlayer;
     }
 
-    public void setVoted_player(String voted_player) {
-        this.voted_player = voted_player;
+    public void setVotedPlayer(String votedPlayer) {
+        this.votedPlayer = votedPlayer;
+    }
+
+    public String getVotingPlayer() {
+        return votingPlayer;
+    }
+
+    public void setVotingPlayer(String votingPlayer) {
+        this.votingPlayer = votingPlayer;
     }
 
     @Override
     public String toString() {
         return "GamePhaseResult{" +
                 "phase='" + phase + '\'' +
-                ", voted_player='" + voted_player + '\'' +
+                ", voted_player='" + votedPlayer + '\'' +
                 '}';
     }
+
 }

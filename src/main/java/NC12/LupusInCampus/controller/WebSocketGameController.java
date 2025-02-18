@@ -26,13 +26,15 @@ public class WebSocketGameController {
             
     private static SimpMessagingTemplate messagingTemplate = null;
 
-    private static MessageQueueManager messageQueueManager = new MessageQueueManager();
+    private static MessageQueueManager messageQueueManager = new MessageQueueManager(); //Messages queue
 
-    private static Map<String, Map<String, Boolean>> running_games = new HashMap<>();
-    private static Map<String, List<Player>> games_players = new HashMap<>();
+    private static Map<String, Map<String, Boolean>> running_games = new HashMap<>(); //Running games with player's nicknames list and is_alive state
+    private static Map<String, List<Player>> games_players = new HashMap<>(); //Running games with player list
 
-    private static Map<String, Integer> werevolves_vote = new HashMap<>();
-    private static Map<String, Map<String, Integer>> voted_players = new HashMap<>();
+    private static Map<String, Integer> werevolves_vote = new HashMap<>(); //Running games with count of werewolves in the game
+    private static Map<String, Map<String, Integer>> voted_players = new HashMap<>(); //Running games with voted player and count of votes
+
+    private static Map<String, Integer> players_vote = new HashMap<>(); // Running games with player who must vote
 
     WebSocketGameController(SimpMessagingTemplate template) {
         messagingTemplate = template;
@@ -77,17 +79,25 @@ public class WebSocketGameController {
             werevolves_vote.put(lobbyCode,
                     RoleAssignmentFactoryProvider.getFactory(players.size()).getRoles(players.size()).stream()
                             .filter(v -> v.equals(STUDENT_OUT_COURSE)).toList().size());
+        }
 
+        if (!players_vote.containsKey(lobbyCode)){
+            players_vote.put(lobbyCode, players.size());
         }
 
         GameUpdateMessage gameUpdateMessagecol = null;
-        if (!running_games.get(lobbyCode).containsKey(message.getVoted_player())){
+        if (!running_games.get(lobbyCode).containsKey(message.getVotedPlayer())){
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("game_phase", message.getPhase());
             jsonObject.addProperty("message", "Il giocatore votato non è in partita");
-            gameUpdateMessagecol = new GameUpdateMessage("RETRY_VOTE", jsonObject.getAsString(), lobbyCode);
+
+            String jsonString = jsonObject.toString();
+            jsonString = jsonString.replace("\\", "");
+
+            gameUpdateMessagecol = new GameUpdateMessage("RETRY_VOTE", jsonString, lobbyCode);
             message.setPhase("ERROR");
         }
+
 
         switch (message.getPhase()){
             case "werewolves":{
@@ -96,31 +106,64 @@ public class WebSocketGameController {
                     JsonObject jsonObject = new JsonObject();
                     jsonObject.addProperty("game_phase", message.getPhase());
                     jsonObject.addProperty("message", "Tutti gli studenti fuori corso devono essere d'accordo");
-                    gameUpdateMessagecol = new GameUpdateMessage("RETRY_VOTE", jsonObject.getAsString(), lobbyCode);
+
+                    String jsonString = jsonObject.toString();
+                    jsonString = jsonString.replace("\\", "");
+
+                    gameUpdateMessagecol = new GameUpdateMessage("RETRY_VOTE", jsonString, lobbyCode);
                 } else if (result != null && result.booleanValue()) {
-                    gameUpdateMessagecol = new GameUpdateMessage("NEXT_PHASE", "bodyguard", lobbyCode);
+                    JsonObject jsonObject = new JsonObject();
+                    jsonObject.addProperty("game_phase", "bodyguard");
+                    jsonObject.addProperty("additionalInfo", "");
+
+                    String jsonString = jsonObject.toString();
+                    jsonString = jsonString.replace("\\", "");
+
+                    gameUpdateMessagecol = new GameUpdateMessage("NEXT_PHASE", jsonString, lobbyCode);
                 }
                 break;
             }
             case "bodyguard":{
                 doProcessBodyguardVote(lobbyCode, message);
-                gameUpdateMessagecol = new GameUpdateMessage("NEXT_PHASE", "seer", lobbyCode);
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("game_phase", "seer");
+                jsonObject.addProperty("additionalInfo", message.getVotedPlayer());
+
+                String jsonString = jsonObject.toString();
+                jsonString = jsonString.replace("\\", "");
+                gameUpdateMessagecol = new GameUpdateMessage("NEXT_PHASE", jsonString, lobbyCode);
                 break;
             }
             case "seer":{
-                Boolean result = doProcessSeerVote(lobbyCode, message, players);
-                String result_message;
+                Boolean result = doProcessSeerVote(lobbyCode, message, players, game.getId(), gameDAO);
+                String result_message = "";
                 if (result != null && result.booleanValue()) {
                     result_message = "Hai trovato uno studente fuori corso";
-                } else {
+                } else if (result != null && !result.booleanValue()) {
                     result_message = "Non hai trovato uno studente fuori corso";
                 }
-                String seerNickname = players.stream().filter(p -> p.getRole().equals("Ricercatore")).findFirst().get().getNickname();
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("game_phase", "discussion");
+                String killed_player = voted_players.get(lobbyCode).keySet().iterator().next();
+                jsonObject.addProperty("additionalInfo", killed_player);
+                String seerNickname = message.getVotingPlayer();
                 sendMessageToPlayer(seerNickname, new GameUpdateMessage("SEER_RESULT", result_message, lobbyCode));
-                gameUpdateMessagecol = new GameUpdateMessage("NEXT_PHASE", "discussion", lobbyCode);
+                String jsonString = jsonObject.toString();
+                jsonString = jsonString.replace("\\", "");
+                gameUpdateMessagecol = new GameUpdateMessage("NEXT_PHASE", jsonString, lobbyCode);
+                voted_players.get(lobbyCode).clear();
                 break;
             }
-            case "discussion":{
+            case "voting":{
+                String votedPlayer = doProcessDiscussionVote(lobbyCode, message, players);
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("game_phase", "werewolves");
+                jsonObject.addProperty("additionalInfo", votedPlayer);
+                String jsonString = jsonObject.toString();
+                jsonString = jsonString.replace("\\", "");
+                gameUpdateMessagecol = new GameUpdateMessage("NEXT_PHASE", jsonString, lobbyCode);
+                werevolves_vote.remove(lobbyCode);
+                players_vote.remove(lobbyCode);
                 break;
             }
         }
@@ -144,13 +187,52 @@ public class WebSocketGameController {
         messagingTemplate.convertAndSend(topic, gameUpdateMessagecol);
     }
 
-    private Boolean doProcessSeerVote(String lobbyCode, GamePhaseResult message, List<Player> players) {
-        Player tmp = players.stream().filter(p -> p.getNickname().equals(message.getVoted_player())).findFirst().orElse(null);
+    private String doProcessDiscussionVote(String lobbyCode, GamePhaseResult message, List<Player> players) {
+
+        boolean flag = false;
+        if (players_vote.containsKey(lobbyCode)){
+            if (players_vote.get(lobbyCode) == 1)
+                flag = true;
+        }
+
+        if (!voted_players.containsKey(lobbyCode)){
+            voted_players.put(lobbyCode, new HashMap<String, Integer>());
+        }
+
+        Map<String, Integer> votes = voted_players.get(lobbyCode);
+        if (!votes.containsKey(message.getVotedPlayer())){
+            votes.put(message.getVotedPlayer(), 1);
+        } else {
+            Integer i = ((Integer) votes.get(message.getVotedPlayer()));
+            i++;
+            votes.put(message.getVotedPlayer(), i);
+        }
+
+        if (flag){
+            String votedPlayer = getMaxVotedPlayer(votes);
+            if (!votedPlayer.equals("skip")) {
+                running_games.get(lobbyCode).put(votedPlayer, false);
+            }
+
+            return votedPlayer;
+        }
+
+        players_vote.put(lobbyCode, players_vote.get(lobbyCode) - 1);
+        return null;
+    }
+
+    private String getMaxVotedPlayer(Map<String, Integer> votes) {
+        return votes.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).toList().get(0).getKey();
+    }
+
+    private Boolean doProcessSeerVote(String lobbyCode, GamePhaseResult message, List<Player> players, int gameId, GameDAO gameDAO) {
+        Player tmp = players.stream().filter(p -> p.getNickname().equals(message.getVotedPlayer())).findFirst().orElse(null);
         if (tmp == null) {
             return null;
         }
 
-        if (tmp.getRole().equals("Studente fuori corso")) return true;
+        if (gameDAO.findRoleByPlayerId(tmp.getId(), gameId).equals("Studente fuori corso")) return true;
 
         return false;
     }
@@ -168,17 +250,17 @@ public class WebSocketGameController {
         }
 
         Map<String, Integer> votes = voted_players.get(lobbyCode);
-        if (!votes.containsKey(message.getVoted_player())){
-            votes.put(message.getVoted_player(), 1);
+        if (!votes.containsKey(message.getVotedPlayer())){
+            votes.put(message.getVotedPlayer(), 1);
         } else {
-           Integer i = ((Integer) votes.get(message.getVoted_player()));
+           Integer i = ((Integer) votes.get(message.getVotedPlayer()));
            i++;
-           votes.put(message.getVoted_player(), i);
+           votes.put(message.getVotedPlayer(), i);
         }
 
         if (flag){
             if (votes.keySet().size() == 1){
-                running_games.get(lobbyCode).put(message.getVoted_player(), false);
+                running_games.get(lobbyCode).put(message.getVotedPlayer(), false);
                 return true;
             } else {
                 voted_players.get(lobbyCode).clear();
@@ -194,8 +276,8 @@ public class WebSocketGameController {
     private void doProcessBodyguardVote(String lobbyCode, GamePhaseResult message) {
 
         if (voted_players.containsKey(lobbyCode)){
-            if (voted_players.get(lobbyCode).containsKey(message.getVoted_player())){
-                running_games.get(lobbyCode).put(message.getVoted_player(), true);
+            if (voted_players.get(lobbyCode).containsKey(message.getVotedPlayer())){
+                running_games.get(lobbyCode).put(message.getVotedPlayer(), true);
             }
         }
     }

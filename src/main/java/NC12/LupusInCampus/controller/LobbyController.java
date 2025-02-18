@@ -132,7 +132,7 @@ public class LobbyController {
 
     // for the player who wants to join a lobby
     @PostMapping("/join-lobby")
-    public ResponseEntity<?> joinLobby(@RequestBody Map<String, Integer> params, HttpSession session, HttpServletRequest request) {
+    public synchronized ResponseEntity<?> joinLobby(@RequestBody Map<String, Integer> params, HttpSession session, HttpServletRequest request) {
         String endpoint = RequestService.getEndpoint(request);
 
         int code = params.get("code");
