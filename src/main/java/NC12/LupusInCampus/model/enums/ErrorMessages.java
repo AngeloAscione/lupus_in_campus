@@ -36,7 +36,8 @@ public enum ErrorMessages {
     DEVICES_NOT_FOUND(-19, "Nessun dispositivo trovato"),
     ERROR_SEND_NOTIFICATION(-20, "Errore nell'invio della notifica"),
 
-    INCORRECT_OPERATION(-21, "Operazione non corretta");
+    INCORRECT_OPERATION(-21, "Operazione non corretta"),
+    LOBBY_ALREADY_STARTED(-26, "Lobby già startata");
 
     private final String message;
     private final int code;
