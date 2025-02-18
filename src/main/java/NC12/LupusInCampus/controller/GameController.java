@@ -35,14 +35,14 @@ public class GameController {
 
     private final LobbyDAO lobbyDAO;
     private final ListPlayersLobbiesService lobbyLists = new ListPlayersLobbiesService();
-    private final GameDAO gameDAO;
+    private static GameDAO gameDAO = null;
     private final MessagesResponse messagesResponse;
     private final PlayerDAO playerDAO;
 
     @Autowired
-    public GameController(LobbyDAO lobbyDAO, GameDAO gameDAO, MessagesResponse messagesResponse, PlayerDAO playerDAO) {
+    public GameController(LobbyDAO lobbyDAO, GameDAO gameDAO_param, MessagesResponse messagesResponse, PlayerDAO playerDAO) {
         this.lobbyDAO = lobbyDAO;
-        this.gameDAO = gameDAO;
+        gameDAO = gameDAO_param;
         this.messagesResponse = messagesResponse;
         this.playerDAO = playerDAO;
     }
@@ -119,4 +119,8 @@ public class GameController {
         return players;
     }
 
+
+    public static GameDAO getGameDAO() {
+        return gameDAO;
+    }
 }

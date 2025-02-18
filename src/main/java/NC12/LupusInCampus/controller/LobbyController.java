@@ -33,7 +33,7 @@ import java.util.Random;
 @RequestMapping("controller/lobby")
 public class LobbyController {
 
-    private final LobbyDAO lobbyDAO;
+    private static LobbyDAO lobbyDAO = null;
     private final LobbyInvitationDAO lobbyInvitationDAO;
     private final NotificationCaller notificationCaller;
     private final ListPlayersLobbiesService lobbyLists = new ListPlayersLobbiesService();
@@ -41,8 +41,8 @@ public class LobbyController {
 
 
     @Autowired
-    public LobbyController(LobbyDAO lobbyDAO, LobbyInvitationDAO lobbyInvitationDAO, NotificationCaller notificationCaller, MessagesResponse messagesResponse) {
-        this.lobbyDAO = lobbyDAO;
+    public LobbyController(LobbyDAO lobbyDAO_param, LobbyInvitationDAO lobbyInvitationDAO, NotificationCaller notificationCaller, MessagesResponse messagesResponse) {
+        lobbyDAO = lobbyDAO_param;
         this.lobbyInvitationDAO = lobbyInvitationDAO;
         this.notificationCaller = notificationCaller;
         this.messagesResponse = messagesResponse;
@@ -266,4 +266,9 @@ public class LobbyController {
             lobbyInvitationDAO.delete(invitation);
         }
     }
+
+    public static LobbyDAO getLobbyDAO() {
+        return lobbyDAO;
+    }
+
 }
