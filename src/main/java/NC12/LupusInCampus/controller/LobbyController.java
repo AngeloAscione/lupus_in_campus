@@ -41,7 +41,7 @@ public class LobbyController {
 
 
     @Autowired
-    public LobbyController(LobbyDAO lobbyDAO_param, LobbyInvitationDAO lobbyInvitationDAO, NotificationCaller notificationCaller, MessagesResponse messagesResponse) {
+    public LobbyController(LobbyDAO lobbyDAO_param, LobbyInvitationDAO lobbyInvitationDAO, NotificationCaller notificationCaller, ListPlayersLobbiesService lobbyLists, MessagesResponse messagesResponse) {
         lobbyDAO = lobbyDAO_param;
         this.lobbyInvitationDAO = lobbyInvitationDAO;
         this.notificationCaller = notificationCaller;
@@ -141,7 +141,7 @@ public class LobbyController {
 
         if (!Session.sessionIsActive(session))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
-        }
+
 
 
         if (lobbyDAO.count() == 0) {
