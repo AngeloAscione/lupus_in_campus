@@ -32,12 +32,14 @@ public class PlayerController {
     private final PlayerDAO playerDAO;
     private final PasswordResetService passwordResetService;
     private final MessagesResponse messagesResponse;
+    private final Validator validator;
 
     @Autowired
-    public PlayerController(PlayerDAO playerDAO, PasswordResetService passwordResetService, MessagesResponse messagesResponse) {
+    public PlayerController(PlayerDAO playerDAO, PasswordResetService passwordResetService, MessagesResponse messagesResponse, Validator validator) {
         this.playerDAO = playerDAO;
         this.passwordResetService = passwordResetService;
         this.messagesResponse = messagesResponse;
+        this.validator = validator;
     }
 
     @PutMapping("/registration")
@@ -143,7 +145,7 @@ public class PlayerController {
         String endpoint = RequestService.getEndpoint(request);
 
         String email = params.get("email");
-        if (!Validator.emailIsValid(email)) {
+        if (!validator.emailIsValid(email)) {
             return messagesResponse.createResponse(endpoint, ErrorMessages.EMAIL_FORMAT);
         }
 
@@ -212,23 +214,23 @@ public class PlayerController {
     public List<ErrorMessages> validPlayerRegistration(String nickname, String email, String password){
         List<ErrorMessages> errors = new ArrayList<>();
 
-        if (nickname.isBlank() || nickname.isEmpty())
+        if (nickname.isBlank())
             errors.add(ErrorMessages.EMPTY_NICKNAME_FIELD);
         else if (playerDAO.findPlayerByNickname(nickname) != null)
             errors.add(ErrorMessages.NICKNAME_ALREADY_USED);
 
         if (!errors.isEmpty()) return errors;
 
-        if (email.isBlank() || email.isEmpty())
+        if (email.isBlank())
             errors.add(ErrorMessages.EMPTY_EMAIL_FIELD);
-        else if (!Validator.emailIsValid(email))
+        else if (!validator.emailIsValid(email))
             errors.add(ErrorMessages.EMAIL_FORMAT);
         else if (playerDAO.findPlayerByEmail(email) != null)
             errors.add(ErrorMessages.EMAIL_ALREADY_USED);
 
         if (!errors.isEmpty()) return errors;
 
-        if (password.isBlank() || password.isEmpty())
+        if (password.isBlank())
             errors.add(ErrorMessages.EMPTY_PASSWORD_FIELD);
 
         return errors;
@@ -237,16 +239,16 @@ public class PlayerController {
     public List<ErrorMessages> validPlayerLogin(String email, String password){
         List<ErrorMessages> errors = new ArrayList<>();
 
-        if (email.isBlank() || email.isEmpty())
+        if (email.isBlank())
             errors.add(ErrorMessages.EMPTY_EMAIL_FIELD);
-        else if (!Validator.emailIsValid(email))
+        else if (!validator.emailIsValid(email))
             errors.add(ErrorMessages.EMAIL_FORMAT);
         else if (playerDAO.findPlayerByEmail(email) == null)
             errors.add(ErrorMessages.EMAIL_NOT_REGISTERED);
 
         if (!errors.isEmpty()) return errors;
 
-        if (password.isBlank() || password.isEmpty())
+        if (password.isBlank())
             errors.add(ErrorMessages.EMPTY_PASSWORD_FIELD);
 
         if (errors.isEmpty()){
