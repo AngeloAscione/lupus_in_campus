@@ -85,8 +85,18 @@ public class WebSocketGameController {
                 if (result != null && !result.booleanValue()) {
                     messagingTemplate.convertAndSend(topic, new GameUpdateMessage("RETRY_VOTE", "Tutti gli studenti fuori corso devono essere d'accordo", lobbyCode));
                 } else if (result != null && result.booleanValue()) {
-                    messagingTemplate.convertAndSend(topic, new GameUpdateMessage("NEXT_PHASE", "Tutti i giocatori hanno votato", lobbyCode));
+                    messagingTemplate.convertAndSend(topic, new GameUpdateMessage("NEXT_PHASE", "bodyguard", lobbyCode));
                 }
+                break;
+            }
+            case "bodyguard":{
+                break;
+            }
+            case "seer":{
+                break;
+            }
+            case "discussion":{
+                break;
             }
         }
 
