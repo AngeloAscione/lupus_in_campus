@@ -2,6 +2,8 @@ package NC12.LupusInCampus.utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -9,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 
 public class LoggerUtil {
     private static final Logger logger = LoggerFactory.getLogger(LoggerUtil.class);
-    private static final String LOG_FILE = "logs/app.log";
+    private static final String LOG_FILE = "./logs/app.log";
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
@@ -44,6 +46,10 @@ public class LoggerUtil {
      * Writes logs to a file
      */
     private static void writeToFile(String message) {
+        File file = new File(LOG_FILE);
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+        }
         try (FileWriter fileWriter = new FileWriter(LOG_FILE, true)) {
             fileWriter.write(message + "\n");
         } catch (IOException e) {

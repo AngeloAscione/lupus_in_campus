@@ -33,7 +33,7 @@ import java.util.Random;
 @RequestMapping("controller/lobby")
 public class LobbyController {
 
-    private final LobbyDAO lobbyDAO;
+    private static LobbyDAO lobbyDAO = null;
     private final LobbyInvitationDAO lobbyInvitationDAO;
     private final NotificationCaller notificationCaller;
     private static ListPlayersLobbiesService lobbyLists = new ListPlayersLobbiesService();
@@ -41,8 +41,8 @@ public class LobbyController {
 
 
     @Autowired
-    public LobbyController(LobbyDAO lobbyDAO, LobbyInvitationDAO lobbyInvitationDAO, NotificationCaller notificationCaller, ListPlayersLobbiesService lobbyLists, MessagesResponse messagesResponse) {
-        this.lobbyDAO = lobbyDAO;
+    public LobbyController(LobbyDAO lobbyDAO_param, LobbyInvitationDAO lobbyInvitationDAO, NotificationCaller notificationCaller, MessagesResponse messagesResponse) {
+        lobbyDAO = lobbyDAO_param;
         this.lobbyInvitationDAO = lobbyInvitationDAO;
         this.notificationCaller = notificationCaller;
         LobbyController.lobbyLists = lobbyLists;
@@ -139,7 +139,7 @@ public class LobbyController {
         int code = params.get("code");
         LoggerUtil.logInfo("Joining lobby " + code);
 
-        if (!Session.sessionIsActive(session)){
+        if (!Session.sessionIsActive(session))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_NOT_IN_SESSION);
         }
 
@@ -155,10 +155,8 @@ public class LobbyController {
             }
         }
 
-
-        if (!lobbyLists.containsCode(code)) {
+        if (!lobbyLists.containsCode(code))
             return messagesResponse.createResponse(endpoint, ErrorMessages.LOBBY_NOT_FOUND);
-        }
 
         Lobby lobby = lobbyDAO.findLobbyByCode(code);
 
@@ -171,9 +169,8 @@ public class LobbyController {
         }
 
         Player player = (Player) session.getAttribute("player");
-        if (lobbyLists.containsPlayer(code, player)) {
+        if (lobbyLists.containsPlayer(code, player))
             return messagesResponse.createResponse(endpoint, ErrorMessages.PLAYER_ALREADY_JOIN);
-        }
 
         checkIfExistsLobbyInvitation(lobby, player);
 
@@ -282,4 +279,9 @@ public class LobbyController {
             lobbyInvitationDAO.delete(invitation);
         }
     }
+
+    public static LobbyDAO getLobbyDAO() {
+        return lobbyDAO;
+    }
+
 }

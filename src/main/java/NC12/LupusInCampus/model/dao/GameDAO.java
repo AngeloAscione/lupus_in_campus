@@ -15,7 +15,7 @@ public interface GameDAO extends JpaRepository<Game, Integer> {
 
     @Query(value = "SELECT p.* FROM partita p " +
             "JOIN listapartecipanti lp ON p.ID = lp.partitaID " +
-            "WHERE lp.giocatoreID = :idPlayer",nativeQuery = true )
+            "WHERE lp.giocatoreID = :idPlayer", nativeQuery = true)
     List<Game> findGamesPartecipatedByIdPlayer(@Param("idPlayer") int id);
 
     @Query(value = "SELECT g.ID, g.nickname, g.email, g.pass, lp.ruolo " +
@@ -36,4 +36,10 @@ public interface GameDAO extends JpaRepository<Game, Integer> {
     @Transactional
     @Query(value = "INSERT INTO listapartecipanti (partitaID, giocatoreID, ruolo) VALUES (:idGame, :idPlayer, :ruolo)", nativeQuery = true)
     void saveParticipants(@Param("idGame") int idGame, @Param("idPlayer") int idPlayer, @Param("ruolo") String ruolo);
+
+
+    @Query(value = "SELECT p.* FROM partita p WHERE idCreatoreLobby = :creatorId ORDER BY dataPartita DESC LIMIT 1", nativeQuery = true)
+    Game findLastCreatedGameByCreatorId(@Param("creatorId") int creatorId);
+
+
 }
