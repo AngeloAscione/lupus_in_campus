@@ -1,10 +1,10 @@
-# Lupus in Campus – Backend Server
+# 🛠️ Lupus in Campus – Backend Server
 
 **Lupus in Campus** is a multiplayer Android app inspired by the classic deduction game *Lupus in Tabula* (Werewolf), developed to bring the thrilling gameplay experience into the digital world — even remotely. This document describes the backend server component, implemented in **Java with Spring Boot**, designed to manage game logic, user data, matchmaking, and communication.
 
 ---
 
-## Project Purpose
+## 🎯 Project Purpose
 
 The backend provides RESTful services that support the following core features:
 
@@ -19,7 +19,7 @@ The system is designed with educational, collaborative, and entertainment goals,
 
 ---
 
-## System Architecture
+## 🏗️ System Architecture
 
 The backend follows the **MVC pattern**, with the following major modules:
 
@@ -35,7 +35,7 @@ Each subsystem is mapped to dedicated controllers, services, and repositories.
 
 ---
 
-## Tech Stack
+## ⚙️ Tech Stack
 
 - Java 17
 - Spring Boot 3
@@ -49,7 +49,7 @@ Each subsystem is mapped to dedicated controllers, services, and repositories.
 
 ---
 
-## Security
+## 🔐 Security
 
 - Password hashing via BCrypt
 - Token-based user session management
@@ -59,7 +59,7 @@ Each subsystem is mapped to dedicated controllers, services, and repositories.
 
 ---
 
-## Testing & Validation
+## 🧪 Testing & Validation
 
 All core use cases are fully covered with unit tests:
 
@@ -79,26 +79,28 @@ Test framework and tools:
 
 ---
 
-## Directory Structure
+## 📁 Directory Structure
 
 ```
-lupus-server/
-|
-├── src/
-│   ├── main/java/
-│   │   └── it/unisa/lupus/
-│   │       ├── controller/     # REST endpoints
-│   │       ├── service/        # Business logic
-│   │       ├── model/          # JPA entities
-│   │       └── repository/     # DB access
+src/
+├── main/
+│   ├── java/NC12/LupusInCampus/
+│   │   ├── config/         # Application configuration
+│   │   ├── controller/     # REST API endpoints
+│   │   ├── model/          # JPA entity classes
+│   │   ├── roleFactory/    # Logic for dynamic role assignment
+│   │   ├── service/        # Business logic and orchestration
+│   │   ├── utils/          # Helper and utility classes
+│   │   └── LupusInCampusApplication.java  # Main Spring Boot entrypoint
 │   └── resources/
-│       └── application.properties
-├── pom.xml                     # Maven config
+│       └── application.properties         # Configuration file
+├── test/
+│   └── java/NC12/LupusInCampus/          # Unit tests
 ```
 
 ---
 
-## Configuration
+## 🔧 Configuration
 
 Example `application.properties`:
 
@@ -111,7 +113,7 @@ spring.jpa.hibernate.ddl-auto=update
 
 ---
 
-## How to Run
+## 🚀 How to Run
 
 ### Prerequisites
 
@@ -121,7 +123,7 @@ spring.jpa.hibernate.ddl-auto=update
 
 ### Launch Server
 
-```
+```bash
 mvn clean install
 mvn spring-boot:run
 ```
@@ -130,7 +132,7 @@ Server will be available at: `http://localhost:8080`
 
 ---
 
-## Contributors
+## 👥 Contributors
 
 - Angelo Ascione – a.ascione19@studenti.unisa.it
 - Federica Graziuso – f.graziuso1@studenti.unisa.it
@@ -139,7 +141,7 @@ Server will be available at: `http://localhost:8080`
 
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License. Feel free to use, learn from, and adapt it for educational or research purposes.
 
